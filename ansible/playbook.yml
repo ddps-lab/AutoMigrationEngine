@@ -1,0 +1,27 @@
+---
+- name: Migration compatibility check
+  hosts: src
+  #become: true
+  tasks:
+    - name: Initialize contaier
+      shell: /home/ec2-user/podman/podman_init.sh -a
+      ignore_errors: yes
+
+    - name: Create container
+      shell: /home/ec2-user/podman/create_container.sh -t
+
+    - name: Execute workload
+      shell: sudo podman exec -d jupynb /bin/bash -c "jupyter nbconvert --to notebook --execute --inplace test.ipynb --ExecutePreprocessor.timeout=-1"
+      until: result.rc == 0
+      register: result
+      retries: 5
+      delay: 5
+
+    - name: wait for 10sec
+      wait_for:
+        timeout: 10
+      register: result
+
+    - name: Container checkpoint
+      shell: /home/ec2-user/podman/checkpoint.sh -n
+      when: result.elapsed >= 10
