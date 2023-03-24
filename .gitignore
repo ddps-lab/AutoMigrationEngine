@@ -1,4 +1,8 @@
 terraform/.terraform
 terraform/*tfstate*
 terraform/.terraform*
+terraform/.terraform.*
+
+ansible/inventory*
+
 *DS_Store*
