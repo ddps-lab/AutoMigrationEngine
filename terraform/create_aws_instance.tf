@@ -3,28 +3,13 @@ provider "aws" {
   region = "us-west-2"
 }
 
-# output "example_output" {
-#   value = local.group
-# }
-
-# resource "aws_s3_bucket" "test" {
-#   bucket = "migration-compatibility"
-#   acl    = "private"
-
-#   tags = {
-#     Name = "migration-compatibility"
-#   }
-# }
-
 resource "aws_instance" "test" {
-  count = 1
-  # instance_type = local.group[var.group_number][count.index]
+  count = 2
   instance_type = random_shuffle.shuffled.result[count.index]
-  ami = "ami-0ca7246571049ab83" # migration compatibility test on x86
+  ami = "ami-0a960cc034cb6f301" # migration compatibility test on x86
   key_name = "junho_us"
   subnet_id = aws_subnet.public_subnet.id
   
-  # vpc_security_group_ids = [ "sg-073b11e4e427053f1" ] # junho
   vpc_security_group_ids = [
     aws_security_group.security_group.id
   ]
@@ -33,11 +18,33 @@ resource "aws_instance" "test" {
     "Name" = "container-migration-test_${random_shuffle.shuffled.result[count.index]}"
   }
 
-  provisioner "local-exec" {
-    command = "echo '${aws_instance.test[count.index].public_ip}' > ../ansible/inventory.txt"
-  }
-
   depends_on = [
-    aws_security_group.security_group
+    aws_efs_mount_target.mount_target
   ]
+
+  user_data = <<-EOF
+            #!/bin/bash
+            sudo mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${aws_efs_file_system.efs.dns_name}:/ /home/ec2-user/podman/dump
+            EOF
+}
+
+resource "null_resource" "init_inventory" {
+  depends_on = [
+    aws_instance.test
+  ]
+
+  provisioner "local-exec" {
+    command = "rm ../ansible/inventory.txt"
+  }
+}
+
+resource "null_resource" "write_inventory" {
+  count = 2
+  depends_on = [
+    null_resource.init_inventory
+  ]
+
+  provisioner "local-exec" {
+    command = "echo '${aws_instance.test[count.index].public_ip}' >> ../ansible/inventory.txt"
+  }
 }
