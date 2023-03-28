@@ -6,7 +6,7 @@ provider "aws" {
 resource "aws_instance" "test" {
   count = 2
   instance_type = random_shuffle.shuffled.result[count.index]
-  ami = "ami-0a960cc034cb6f301" # migration compatibility test on x86
+  ami = "ami-09b22966ef33fe4d0" # migration compatibility test on x86
   key_name = "junho_us"
   subnet_id = aws_subnet.public_subnet.id
   
@@ -24,7 +24,8 @@ resource "aws_instance" "test" {
 
   user_data = <<-EOF
             #!/bin/bash
-            sudo mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${aws_efs_file_system.efs.dns_name}:/ /home/ec2-user/podman/dump
+            mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${aws_efs_file_system.efs.dns_name}:/ /home/ec2-user/podman/dump
+            sudo chown ec2-user:ec2-user /home/ec2-user/podman/dump
             EOF
 }
 
