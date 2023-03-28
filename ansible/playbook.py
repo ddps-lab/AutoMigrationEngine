@@ -10,33 +10,37 @@ hosts = [host.strip() for host in hosts]
 
 print(hosts)
 
-
-# Initial inventory
 inventory = {
     "src": {
-        "hosts": [hosts[0]],
+        "hosts": {
+            hosts[0]: None,
+        },
     },
     "dst": {
-        "hosts": hosts[1:],
+        "hosts": {
+            host: None for host in hosts[1:]
+        },
     },
 }
 
+
 for _ in range(len(inventory["dst"]["hosts"]) + len(inventory["src"]["hosts"])):
     # Run playbook with current inventory
-    # subprocess.run(["ansible-playbook", "playbook.yml", "-i", "inventory.json"])
-    print(inventory)
 
     # Swap hosts
-    src_hosts = inventory["src"]["hosts"]
-    dst_hosts = inventory["dst"]["hosts"]
-    print(src_hosts)
-    print(dst_hosts)
-    inventory["dst"]["hosts"].append(inventory["src"]["hosts"].pop(0))
-    inventory["src"]["hosts"].append(inventory["dst"]["hosts"].pop(0))
+    src_hosts = list(inventory["src"]["hosts"].keys())
+    dst_hosts = list(inventory["dst"]["hosts"].keys())
+
+    inventory["dst"]["hosts"][src_hosts[0]] = inventory["src"]["hosts"].pop(src_hosts[0])
+    inventory["src"]["hosts"][dst_hosts[0]] = inventory["dst"]["hosts"].pop(dst_hosts[0])
 
     # Update dynamic inventory file
     with open("inventory.json", "w") as f:
         json.dump(inventory, f)
 
+
+    subprocess.run(["ansible-playbook", "playbook.yml", "-i", "inventory.json"])
+
+    break
     # Wait for some time before running the playbook again
     time.sleep(5)
