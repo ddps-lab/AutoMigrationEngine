@@ -1,5 +1,5 @@
 ---
-- name: Migration compatibility check
+- name: Migration compatibility check - src
   hosts: src
   tasks:
     - name: Initialize contaier
@@ -21,7 +21,7 @@
       shell: /home/ec2-user/podman/checkpoint.sh -n
       when: result.elapsed >= 5
   
-- name : test
+- name : Migration compatibility check - dst
   hosts: dst
   tasks:
     - name: Initialize contaier
