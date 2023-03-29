@@ -26,6 +26,7 @@ resource "aws_instance" "test" {
             #!/bin/bash
             mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${aws_efs_file_system.efs.dns_name}:/ /home/ec2-user/podman/dump
             sudo chown ec2-user:ec2-user /home/ec2-user/podman/dump
+            sudo timedatectl set-timezone 'Asia/Seoul'
             EOF
 }
 
