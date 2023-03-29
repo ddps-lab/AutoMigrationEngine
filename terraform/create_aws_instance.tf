@@ -6,7 +6,7 @@ provider "aws" {
 resource "aws_instance" "test" {
   count = 2
   instance_type = random_shuffle.shuffled.result[count.index]
-  ami = "ami-09b22966ef33fe4d0" # migration compatibility test on x86
+  ami = "ami-02f8a353cfd3050ee" # migration compatibility test on x86
   key_name = "junho_us"
   subnet_id = aws_subnet.public_subnet.id
   

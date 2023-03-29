@@ -6,6 +6,11 @@
       shell: /home/ec2-user/podman/podman_init.sh -a
       ignore_errors: yes
 
+    - name: logging1
+      shell: |
+        echo $(curl http://169.254.169.254/latest/meta-data/instance-type) >> /home/ec2-user/podman/dump/performance.log
+        echo create container : $(date) >> /home/ec2-user/podman/dump/timestamp.log
+
     - name: Create container
       shell: /home/ec2-user/podman/create_container.sh -t
 
@@ -17,9 +22,17 @@
         timeout: 5
       register: result
 
+    - name: logging2
+      shell: |
+        echo start checkpoint : $(date) >> /home/ec2-user/podman/dump/timestamp.log
+
     - name: Container checkpoint
       shell: /home/ec2-user/podman/checkpoint.sh -n
       when: result.elapsed >= 5
+
+    - name: logging3
+      shell: |
+        echo end checkpoint : $(date) >> /home/ec2-user/podman/dump/timestamp.log
   
 - name : Migration compatibility check - dst
   hosts: dst
@@ -28,18 +41,55 @@
       shell: /home/ec2-user/podman/podman_init.sh -o
       ignore_errors: yes
 
+    - name: logging4
+      shell: |
+        INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type)
+        sed -i "2i $INSTANCE_TYPE" /home/ec2-user/podman/dump/performance.log
+
+    - name: logging5
+      shell: |
+        echo start restore : $(date) >> /home/ec2-user/podman/log/timestamp.log
+
+    - name: moved dump/log to log dir
+      shell: |
+        cat /home/ec2-user/podman/dump/performance.log > /home/ec2-user/podman/log/performance.log
+        cat /home/ec2-user/podman/dump/timestamp.log > /home/ec2-user/podman/log/timestamp.log
+
     - name: Container restore
       shell: /home/ec2-user/podman/restore.sh -n
-    
+
     - name: Crash check 
       shell: sudo podman ps -a | grep Exited
       register: container_output
       ignore_errors: yes
 
+    - name: logging6
+      shell: |
+        echo container crashed : $(date) >> /home/ec2-user/podman/log/timestamp.log
+        mv /home/ec2-user/podman/dump/performance.log /home/ec2-user/podman/log
+      when: container_output.stdout_lines | length >= 1 # Container crashed
+
+    - name: logging7
+      shell: |
+        echo end restore : $(date) >> /home/ec2-user/podman/log/timestamp.log
+      when: container_output.stdout_lines | length == 0 # Container not crashed
+
     - name: Combine performance and workload excute log
-      shell: sudo podman cp jupynb:/home/jovyan/workload.log . ; cat workload.log >> /home/ec2-user/podman/log/performance.log
+      shell: |
+        sudo podman cp jupynb:/home/jovyan/workload.log /home/ec2-user/podman
+        cat /home/ec2-user/podman/workload.log >> /home/ec2-user/podman/log/performance.log
       register: result
       until: "'No such file or directory' not in result.stderr"
       retries: 30
       delay: 5
       when: container_output.stdout_lines | length == 0 # Container not crashed
+
+    - name: Combine performance and timestamp log
+      shell: |
+        cat /home/ec2-user/podman/log/timestamp.log >> /home/ec2-user/podman/log/performance.log
+
+    - name: Renaming log
+      shell: |
+        tail -n +3 /home/ec2-user/podman/log/performance.log > /home/ec2-user/podman/log/"$(sed -n '1p' /home/ec2-user/podman/log/performance.log)_to_$(sed -n '2p' /home/ec2-user/podman/log/performance.log)"
+        rm /home/ec2-user/podman/log/performance.log
+        rm /home/ec2-user/podman/log/timestamp.log
