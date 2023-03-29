@@ -1,7 +1,6 @@
 ---
-- name: Migration compatibility check
+- name: Migration compatibility check - src
   hosts: src
-  #become: true
   tasks:
     - name: Initialize contaier
       shell: /home/ec2-user/podman/podman_init.sh -a
@@ -11,17 +10,36 @@
       shell: /home/ec2-user/podman/create_container.sh -t
 
     - name: Execute workload
-      shell: sudo podman exec -d jupynb /bin/bash -c "jupyter nbconvert --to notebook --execute --inplace test.ipynb --ExecutePreprocessor.timeout=-1"
-      until: result.rc == 0
-      register: result
-      retries: 5
-      delay: 5
+      shell: /home/ec2-user/podman/execute_workload_in_container.sh
 
-    - name: wait for 10sec
+    - name: wait for 5 sec
       wait_for:
-        timeout: 10
+        timeout: 5
       register: result
 
     - name: Container checkpoint
       shell: /home/ec2-user/podman/checkpoint.sh -n
-      when: result.elapsed >= 10
+      when: result.elapsed >= 5
+  
+- name : Migration compatibility check - dst
+  hosts: dst
+  tasks:
+    - name: Initialize contaier
+      shell: /home/ec2-user/podman/podman_init.sh -o
+      ignore_errors: yes
+
+    - name: Container restore
+      shell: /home/ec2-user/podman/restore.sh -n
+    
+    - name: Crash check 
+      shell: sudo podman ps -a | grep Exited
+      register: container_output
+      ignore_errors: yes
+
+    - name: Combine performance and workload excute log
+      shell: sudo podman cp jupynb:/home/jovyan/workload.log . ; cat workload.log >> /home/ec2-user/podman/log/performance.log
+      register: result
+      until: "'No such file or directory' not in result.stderr"
+      retries: 30
+      delay: 5
+      when: container_output.stdout_lines | length == 0 # Container not crashed
