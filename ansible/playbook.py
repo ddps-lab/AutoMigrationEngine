@@ -41,6 +41,6 @@ for _ in range(len(inventory["dst"]["hosts"]) + len(inventory["src"]["hosts"])):
 
     subprocess.run(["ansible-playbook", "playbook.yml", "-i", "inventory.json"])
 
-    break
+    # break
     # Wait for some time before running the playbook again
     time.sleep(5)

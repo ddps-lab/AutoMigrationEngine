@@ -93,3 +93,7 @@
         tail -n +3 /home/ec2-user/podman/log/performance.log > /home/ec2-user/podman/log/"$(sed -n '1p' /home/ec2-user/podman/log/performance.log)_to_$(sed -n '2p' /home/ec2-user/podman/log/performance.log)"
         rm /home/ec2-user/podman/log/performance.log
         rm /home/ec2-user/podman/log/timestamp.log
+
+    - name: Upload to S3
+      shell: |
+        aws s3 cp /home/ec2-user/podman/log/* s3://container-migration-log
