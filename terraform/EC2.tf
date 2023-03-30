@@ -3,11 +3,15 @@ provider "aws" {
   region = "us-west-2"
 }
 
+variable "instance_type" {
+  default = ["m5a.large", "r5a.large", "r5ad.large"]
+}
+
 resource "aws_instance" "test" {
-  count = 2
+  count = 3
   # instance_type = random_shuffle.shuffled.result[count.index]
-  instance_type = "m5.large"
-  ami = "ami-0d86a0db72a97ddd7" # migration compatibility test on x86
+  instance_type = var.instance_type[count.index]
+  ami = "ami-017db8d2adf836dc3" # migration compatibility test on x86
   key_name = "junho_us"
   subnet_id = aws_subnet.public_subnet.id
   
@@ -28,6 +32,7 @@ resource "aws_instance" "test" {
             mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${aws_efs_file_system.efs.dns_name}:/ /home/ec2-user/podman/dump
             sudo chown ec2-user:ec2-user /home/ec2-user/podman/dump
             sudo timedatectl set-timezone 'Asia/Seoul'
+            sudo hostnamectl set-hostname ${random_shuffle.shuffled.result[count.index]}
             EOF
 }
 
@@ -42,7 +47,7 @@ resource "null_resource" "init_inventory" {
 }
 
 resource "null_resource" "write_inventory" {
-  count = 2
+  count = 3
   depends_on = [
     null_resource.init_inventory
   ]
