@@ -23,7 +23,7 @@ inventory = {
     },
 }
 
-
+start_time = time.time()
 for _ in range(len(inventory["dst"]["hosts"]) + len(inventory["src"]["hosts"])):
     # Run playbook with current inventory
 
@@ -44,3 +44,7 @@ for _ in range(len(inventory["dst"]["hosts"]) + len(inventory["src"]["hosts"])):
     # break
     # Wait for some time before running the playbook again
     time.sleep(5)
+
+end_time = time.time()
+total_time = end_time - start_time
+print("total execution time: {:.2f}".format(total_time))
