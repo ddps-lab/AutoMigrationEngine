@@ -11,7 +11,7 @@ resource "aws_instance" "test" {
   count = 3
   # instance_type = random_shuffle.shuffled.result[count.index]
   instance_type = var.instance_type[count.index]
-  ami = "ami-017db8d2adf836dc3" # migration compatibility test on x86
+  ami = "ami-0c7a974f58b92cfc6" # migration compatibility test on x86
   key_name = "junho_us"
   subnet_id = aws_subnet.public_subnet.id
   
