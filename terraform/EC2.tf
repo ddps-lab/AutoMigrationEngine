@@ -3,14 +3,9 @@ provider "aws" {
   region = "us-west-2"
 }
 
-variable "instance_type" {
-  default = ["m5a.large", "r5a.large", "r5ad.large"]
-}
-
 resource "aws_instance" "test" {
-  count = 3
-  # instance_type = random_shuffle.shuffled.result[count.index]
-  instance_type = var.instance_type[count.index]
+  count = length(local.group[var.group_number])
+  instance_type = random_shuffle.shuffled.result[count.index]
   ami = "ami-0c7a974f58b92cfc6" # migration compatibility test on x86
   key_name = "junho_us"
   subnet_id = aws_subnet.public_subnet.id
@@ -24,7 +19,7 @@ resource "aws_instance" "test" {
   }
 
   depends_on = [
-    aws_efs_mount_target.mount_target
+    aws_efs_mount_target.mount_target,
   ]
 
   user_data = <<-EOF
@@ -35,6 +30,7 @@ resource "aws_instance" "test" {
             sudo hostnamectl set-hostname ${random_shuffle.shuffled.result[count.index]}
             EOF
 }
+
 
 resource "null_resource" "init_inventory" {
   depends_on = [
@@ -47,7 +43,7 @@ resource "null_resource" "init_inventory" {
 }
 
 resource "null_resource" "write_inventory" {
-  count = 3
+  count = length(local.group[var.group_number])
   depends_on = [
     null_resource.init_inventory
   ]
