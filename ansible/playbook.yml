@@ -89,7 +89,7 @@
 
     - name: Renaming log
       shell: |
-        tail -n +3 /home/ec2-user/podman/log/performance.log > /home/ec2-user/podman/log/"$(sed -n '1p' /home/ec2-user/podman/log/performance.log)_to_$(sed -n '2p' /home/ec2-user/podman/log/performance.log).log"
+        cat /home/ec2-user/podman/log/performance.log > /home/ec2-user/podman/log/"$(sed -n '1p' /home/ec2-user/podman/log/performance.log)_to_$(sed -n '2p' /home/ec2-user/podman/log/performance.log).log"
         rm /home/ec2-user/podman/log/performance.log
         rm /home/ec2-user/podman/log/timestamp.log
 
