@@ -8,10 +8,10 @@ resource "aws_instance" "test" {
   instance_type = random_shuffle.shuffled.result[count.index]
   ami = "ami-0c7a974f58b92cfc6" # migration compatibility test on x86
   key_name = "junho_us"
-  subnet_id = aws_subnet.public_subnet.id
+  subnet_id = local.existing_subnet == null ? aws_subnet.public_subnet[0].id : data.aws_subnets.existing_subnets.ids[0]
   
   vpc_security_group_ids = [
-    aws_security_group.security_group.id
+    local.existing_security_group == null ? aws_security_group.security_group[0].id : data.aws_security_groups.existing_security_groups.ids[0]
   ]
 
   tags = {
@@ -38,7 +38,7 @@ resource "null_resource" "init_inventory" {
   ]
 
   provisioner "local-exec" {
-    command = "rm ../ansible/inventory.txt"
+    command = "rm ../ansible/inventory_${var.group_number}.txt || true"
   }
 }
 
@@ -49,6 +49,6 @@ resource "null_resource" "write_inventory" {
   ]
 
   provisioner "local-exec" {
-    command = "echo '${aws_instance.test[count.index].public_ip}' >> ../ansible/inventory.txt"
+    command = "echo '${aws_instance.test[count.index].public_ip}' >> ../ansible/inventory_${var.group_number}.txt"
   }
 }
