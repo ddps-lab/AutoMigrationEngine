@@ -8,6 +8,7 @@ resource "aws_instance" "test" {
   instance_type = random_shuffle.shuffled.result[count.index]
   ami = "ami-0c7a974f58b92cfc6" # migration compatibility test on x86
   key_name = "junho_us"
+  availability_zone = "us-west-2a"
   subnet_id = local.existing_subnet == null ? aws_subnet.public_subnet[0].id : data.aws_subnets.existing_subnets.ids[0]
   
   vpc_security_group_ids = [

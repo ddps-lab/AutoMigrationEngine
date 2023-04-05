@@ -34,12 +34,17 @@ resource "aws_vpc" "vpc" {
   tags = {
     Name = "junhoVPC"
   }
+
+  depends_on = [
+    aws_efs_file_system.efs
+  ]
 }
 
 resource "aws_subnet" "public_subnet" {
   count = local.existing_subnet == null ? 1 : 0
   vpc_id = local.existing_vpc == null ? aws_vpc.vpc[0].id : data.aws_vpcs.existing_vpcs.id
 
+  availability_zone = "us-west-2a"
   cidr_block = "172.31.1.0/24"
   enable_resource_name_dns_a_record_on_launch = true
   map_public_ip_on_launch = true
@@ -73,7 +78,7 @@ resource "aws_route_table" "route_table" {
 }
 
 resource "aws_security_group" "security_group" {
-  # name_prefix = "junhoSecurity_group"
+  name_prefix = "junhoSecurity_group"
 
   count = local.existing_vpc == null ? 1 : 0
   vpc_id = aws_vpc.vpc[0].id
