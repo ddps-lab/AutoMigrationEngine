@@ -3,8 +3,11 @@
 import subprocess
 import time
 import json
+import sys
 
-with open("inventory.txt") as f:
+group_number = sys.argv[1]
+
+with open("inventory_" + group_number + ".txt") as f:
     hosts = f.readlines()
 hosts = [host.strip() for host in hosts]
 
@@ -35,13 +38,12 @@ for _ in range(len(inventory["dst"]["hosts"]) + len(inventory["src"]["hosts"])):
     inventory["src"]["hosts"][dst_hosts[0]] = inventory["dst"]["hosts"].pop(dst_hosts[0])
 
     # Update dynamic inventory file
-    with open("inventory.json", "w") as f:
+    with open("inventory_" + group_number + ".json", "w") as f:
         json.dump(inventory, f)
 
 
-    subprocess.run(["ansible-playbook", "playbook.yml", "-i", "inventory.json"])
+    subprocess.run(["ansible-playbook", "playbook.yml", "-i", "inventory_" + group_number + ".json"])
 
-    # break
     # Wait for some time before running the playbook again
     time.sleep(5)
 
