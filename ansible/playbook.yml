@@ -6,7 +6,7 @@
       shell: /home/ec2-user/podman/podman_init.sh -a
       ignore_errors: yes
 
-    - name: logging1
+    - name: logging - write the src instance type
       shell: |
         echo $(curl http://169.254.169.254/latest/meta-data/instance-type) >> /home/ec2-user/podman/dump/performance.log
         echo create container : $(date) >> /home/ec2-user/podman/dump/timestamp.log
@@ -22,7 +22,7 @@
         timeout: 5
       register: result
 
-    - name: logging2
+    - name: logging - write the checkpoint start time
       shell: |
         echo start checkpoint : $(date) >> /home/ec2-user/podman/dump/timestamp.log
 
@@ -30,7 +30,7 @@
       shell: /home/ec2-user/podman/checkpoint.sh -n
       when: result.elapsed >= 5
 
-    - name: logging3
+    - name: logging - write the checkpoint end time
       shell: |
         echo end checkpoint : $(date) >> /home/ec2-user/podman/dump/timestamp.log
   
@@ -46,32 +46,31 @@
         cat /home/ec2-user/podman/dump/performance.log > /home/ec2-user/podman/log/performance.log
         cat /home/ec2-user/podman/dump/timestamp.log > /home/ec2-user/podman/log/timestamp.log
 
-    - name: logging4
+    - name: logging - write the restore start time
       shell: |
         echo start restore : $(date) >> /home/ec2-user/podman/log/timestamp.log
 
-    - name: logging5
+    - name: logging - write the dst instance type
       shell: |
         INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type)
         sed -i "2i $INSTANCE_TYPE" /home/ec2-user/podman/log/performance.log
 
     - name: Container restore
-      shell: /home/ec2-user/podman/restore.sh -n
+      shell: |
+        /home/ec2-user/podman/restore.sh -n
+    
+    - name: logging - write the container state
+      shell: |
+        sudo podman ps -a >> /home/ec2-user/podman/log/timestamp.log
 
     - name: Crash check 
       shell: sudo podman ps -a | grep Exited
       register: container_output
       ignore_errors: yes
 
-    - name: logging6
-      shell: |
-        echo container crashed : $(date) >> /home/ec2-user/podman/log/timestamp.log
-      when: container_output.stdout_lines | length >= 1 # Container crashed
-
-    - name: logging7
+    - name: logging - write the restore end time
       shell: |
         echo end restore : $(date) >> /home/ec2-user/podman/log/timestamp.log
-      when: container_output.stdout_lines | length == 0 # Container not crashed
 
     - name: Combine performance and workload excute log
       shell: |
