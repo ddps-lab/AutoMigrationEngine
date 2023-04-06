@@ -8,3 +8,5 @@ ansible/inventory*
 *DS_Store*
 
 group*
+
+secure-outpost*
