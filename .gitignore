@@ -7,6 +7,6 @@ ansible/inventory*
 
 *DS_Store*
 
-group*
+group*.log
 
 secure-outpost*
