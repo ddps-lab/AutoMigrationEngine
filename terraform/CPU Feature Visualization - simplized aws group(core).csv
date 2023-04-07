@@ -1,0 +1,11 @@
+feature groups,monitor,hle,erms,rtm,mpx,avx512f,avx512dq,rdseed,adx,clflushopt,avx512cd,sha_ni,avx512bw,avx512vl,avx512vbmi,avx512_vbmi2,gfni,vaes,vpclmulqdq,avx512_vnni,avx512_bitalg,tme,avx512_vpopcntdq,rdpid,mmxext,sse4a,misalignsse,3dnowprefetch,clzero,xsavec,xgetbv1
+"r5a.large, t3a.medium, m5a.large",0,0,0,0,0,0,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1
+"c4.large, t2.large, m4.large",0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+"c6a.large, r6a.large, m6a.large",0,0,1,0,0,0,0,1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,1,1,1,1,1,1,1,1
+"m6i.large, i4i.large, r6i.large, c6i.large",0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,0,1,1
+"r5.large, t3.medium, c5.large, m5.xlarge, i3en.large",0,0,1,0,1,1,1,1,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,1
+"m5n.large, r5dn.large",0,0,1,0,1,1,1,1,1,1,1,0,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,1
+"i3.large, r4.large",0,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0
+"t3.2xlarge, m5.large, c5n.large, z1d.large, i3en.2xlarge, r5d.4xlarge",0,1,1,1,1,1,1,1,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,1
+"m6i.16xlarge, i4i.16xlarge, r6i.16xlarge, c6i.16xlarge",1,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,0,1,1
+"i3.8xlarge, r4.8xlarge",1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0
