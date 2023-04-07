@@ -12,3 +12,5 @@ group*.log
 secure-outpost*
 
 .vscode/*
+
+__pycache__
