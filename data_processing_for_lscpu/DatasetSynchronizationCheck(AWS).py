@@ -1,10 +1,12 @@
-# import library
-import pandas as pd
-
-import gspread as gs
-from gspread_formatting import *
-
 import boto3
+
+import sys
+from pathlib import Path
+
+# module 경로 추가
+sys.path.append(str(Path(__file__).resolve().parent.joinpath('module')))
+
+import GspreadUtils
 
 # EC2 클라이언트 생성
 ec2_client = boto3.client('ec2', region_name = 'us-west-2')
@@ -44,11 +46,7 @@ print(f"Number of createable x86_64 instances : {len(createable_x86_64_instances
 print(f"Number of createable arm64 instances : {len(createable_arm64_instances)}")
 print(f"Number of unsupported instances : {len(unsupported_instances)}")
 
-# read google spread sheet(core features)
-gc = gs.service_account(filename='./secure-outpost-380004-8d45b1504f3e.json')
-
-sheet = gc.open('CPU Feature Visualization').worksheet('groupby aws(core)')
-df = pd.DataFrame(sheet.get_all_records())
+df = GspreadUtils.read_gspread('groupby aws(core)')
 featureGroups = df['feature groups'].tolist()
 groups = []
 

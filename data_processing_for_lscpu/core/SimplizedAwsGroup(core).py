@@ -1,17 +1,14 @@
-# import library
-import pandas as pd
-
-import gspread as gs
-from gspread_formatting import *
-
 import re
 
-# read google spread sheet(core features)
-gc = gs.service_account(filename='../secure-outpost-380004-8d45b1504f3e.json')
+import sys
+from pathlib import Path
 
-sheet = gc.open('CPU Feature Visualization').worksheet('groupby aws(core)')
-df = pd.DataFrame(sheet.get_all_records())
+# module 경로 추가
+sys.path.append(str(Path(__file__).resolve().parent.joinpath('..', 'modules')))
 
+import GspreadUtils
+
+df = GspreadUtils.read_gspread('groupby aws(core)')
 df = df['feature groups']
 
 # df to list
@@ -104,11 +101,7 @@ for group in final_experiment_set:
 
 print(f'deleted_index : {deleted_index}')
 
-# read google spread sheet(core features)
-gc = gs.service_account(filename='../secure-outpost-380004-8d45b1504f3e.json')
-
-sheet = gc.open('CPU Feature Visualization').worksheet('groupby aws(core)')
-df = pd.DataFrame(sheet.get_all_records())
+df = GspreadUtils.read_gspread('groupby aws(core)')
 
 # Update with a simplified dataset.
 for index in sorted(deleted_index, reverse = True):
@@ -119,17 +112,4 @@ df.drop('index', axis=1, inplace=True)
 for i in range(len(final_experiment_set)):
     df.at[i, 'feature groups'] = ', '.join(final_experiment_set[i])
 
-# write google spread sheet1(core features)
-gc = gs.service_account(filename='../secure-outpost-380004-8d45b1504f3e.json')
-
-sheet = gc.open('CPU Feature Visualization').worksheet('simplized aws group(core)')
-sheet.clear() # 이전 데이터 삭제
-sheet.update([df.columns.values.tolist()] + df.values.tolist())
-
-format_cell = cellFormat(
-    verticalAlignment='MIDDLE', 
-    wrapStrategy='OVERFLOW_CELL', 
-    textFormat=textFormat(fontSize=10)
-)
-
-format_cell_range(sheet, '1:500', format_cell)
+GspreadUtils.write_gspread('simplized aws group(core)', df)

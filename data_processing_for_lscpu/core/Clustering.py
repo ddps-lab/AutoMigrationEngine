@@ -1,24 +1,18 @@
-# import library
-import pandas as pd
-
-import gspread as gs
-from gspread_formatting import *
-
-# import math library
-from math import *
-from decimal import Decimal
-
 import numpy as np
 
 # clustering & visualization
 import matplotlib.pyplot as plt
 from scipy.cluster.hierarchy import dendrogram, linkage
 
-# read google spread sheet(core features)
-gc = gs.service_account(filename='../secure-outpost-380004-8d45b1504f3e.json')
+import sys
+from pathlib import Path
 
-sheet = gc.open('CPU Feature Visualization').worksheet('feature groups(core)')
-df = pd.DataFrame(sheet.get_all_records())
+# module 경로 추가
+sys.path.append(str(Path(__file__).resolve().parent.joinpath('..', 'modules')))
+
+import GspreadUtils
+
+df = GspreadUtils.read_gspread('feature groups(core)')
 
 df = df.drop('feature groups', axis=1)
 

@@ -10,3 +10,5 @@ ansible/inventory*
 group*.log
 
 secure-outpost*
+
+.vscode/*
