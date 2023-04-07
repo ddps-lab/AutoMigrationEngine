@@ -9,7 +9,7 @@ import ansible.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-GROUP_NUMBER = 2
+GROUP_NUMBER = 1
 
 start_time = datetime.datetime.now()
 
@@ -23,7 +23,7 @@ for i in range(GROUP_NUMBER):
 subprocess.run(['terraform', 'workspace', 'select', 'group0'], cwd='terraform')
 time.sleep(1)
 with open(f'group0.log', 'w') as f: # Created separately for reuse of some resources, such as VPCs
-    p = subprocess.Popen(['terraform', 'apply', '-auto-approve', '-lock=false', '-var=group_number=0'], cwd='terraform', stdout=f, stderr=f)
+    p = subprocess.Popen(['terraform', 'apply', '-auto-approve', '-lock=false', '-var=group_number=0'], cwd='terraform', stdout=f, stderr=f, encoding='utf-8')
 
 p.wait()
 

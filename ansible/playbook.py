@@ -10,16 +10,25 @@ def start(group_number):
     print(hosts)
 
     inventory = {
+        "all":{
+            "vars": {
+                "ansible_user": "ec2-user",
+                "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
+                #  "ansible_ssh_private_key_file": "~/AWS/junho_us.pem",
+            },
+            "hosts": {},
+        },
+
         "src": {
             "hosts": {
-                hosts[0]: None,
-            },
+                hosts[0]: None
+            }
         },
         "dst": {
             "hosts": {
                 host: None for host in hosts[1:]
-            },
-        },
+            }
+        }
     }
 
     start_time = time.time()
@@ -38,7 +47,7 @@ def start(group_number):
             json.dump(inventory, f)
 
         with open(f'group{group_number}.log', 'a') as f:
-            subprocess.run(["ansible-playbook", "ansible/playbook.yml", "-i", "ansible/inventory_" + group_number + ".json", "-e", "config_file=ansible/ansible.cfg"], stdout=f, stderr=f)
+            subprocess.run(["ansible-playbook", "ansible/playbook.yml", "-i", "ansible/inventory_" + group_number + ".json"], stdout=f, stderr=f)
         
         time.sleep(5)
 
