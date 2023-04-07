@@ -1,12 +1,15 @@
+import threading
 import subprocess
 import time
 import datetime
 import boto3
 
+import ansible.playbook as playbook
+
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-GROUP_NUMBER = 10
+GROUP_NUMBER = 2
 
 start_time = datetime.datetime.now()
 
@@ -78,15 +81,19 @@ while True:
 print('Pass all instance health checks')
 
 # Execute an Ansible command to start the container migration test.
-processes = []
+def worker(group_num):
+    playbook.start(str(group_num))
+
+threads = []
 for i in range(GROUP_NUMBER):
-    with open(f'group{i}.log', 'a') as f:
-        processes.append(subprocess.Popen(['python3', 'playbook.py', str(i)], cwd='ansible', stdout=f, stderr=f))
-    time.sleep(10)
+    thread = threading.Thread(target=worker, args=(i,))
+    thread.start()
+    threads.append(thread)
+    time.sleep(3)
 
 # wait for end of test
-for p in processes:
-    p.wait()
+for thread in threads:
+    thread.join()
 
 # destroy infrastructure by group 
 processes = []
