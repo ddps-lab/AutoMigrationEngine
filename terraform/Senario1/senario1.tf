@@ -8,20 +8,21 @@ variable "group_number" {
 }
 
 module "shuffle_instances" {
-  source = "./shuffle-instances"
+  source = "../modules/shuffle-instances"
   group_number = var.group_number
+  file_path = "../CPU Feature Visualization - simplized aws group(core).csv"
 }
 
 module "vpc" {
-  source = "./VPC"
+  source = "../modules/VPC"
 }
 
 module "s3" {
-  source = "./S3"
+  source = "../modules/S3"
 }
 
 module "efs" {
-  source = "./EFS"
+  source = "../modules/EFS-for-senario1"
   group_number = var.group_number
   vpc_id = module.vpc.vpc_id
   public_subnet_id = module.vpc.public_subnet_id
@@ -29,7 +30,7 @@ module "efs" {
 }
 
 module "ec2" {
-  source = "./EC2"
+  source = "../modules/EC2"
   group_number = var.group_number
   shuffled_instance_group = module.shuffle_instances.shuffled_instance_group
   instance_group = module.shuffle_instances.instance_group

@@ -30,7 +30,7 @@ resource "null_resource" "init_inventory" {
   ]
 
   provisioner "local-exec" {
-    command = "rm ../ansible/inventory_${var.group_number}.txt || true"
+    command = "rm ../../ansible/inventory_${var.group_number}.txt || true"
   }
 }
 
@@ -41,6 +41,6 @@ resource "null_resource" "write_inventory" {
   ]
 
   provisioner "local-exec" {
-    command = "echo '${aws_instance.test[count.index].public_ip}' >> ../ansible/inventory_${var.group_number}.txt"
+    command = "echo '${aws_instance.test[count.index].public_ip}' >> ../../ansible/inventory_${var.group_number}.txt"
   }
 }

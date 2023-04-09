@@ -9,7 +9,7 @@ terraform {
 
 locals {
   group_list = [
-    for row in csvdecode(file("CPU Feature Visualization - simplized aws group(core).csv")) : row["feature groups"]
+    for row in csvdecode(file(var.file_path)) : row["feature groups"]
   ]
 
   group = [
