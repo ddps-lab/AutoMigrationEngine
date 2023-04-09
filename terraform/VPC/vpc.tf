@@ -34,10 +34,6 @@ resource "aws_vpc" "vpc" {
   tags = {
     Name = "junhoVPC"
   }
-
-  depends_on = [
-    aws_efs_file_system.efs
-  ]
 }
 
 resource "aws_subnet" "public_subnet" {

@@ -7,7 +7,6 @@ resource "aws_s3_bucket" "bucket" {
   count = length(data.aws_s3_bucket.bucket) == 0 ? 1 : 0
 
   bucket = "container-migration-log"
-
   tags = {
     Name = "container-migration-log"
   }

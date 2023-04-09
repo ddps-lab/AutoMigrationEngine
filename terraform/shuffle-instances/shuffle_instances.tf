@@ -2,11 +2,10 @@ terraform {
   required_providers {
     random = {
       source = "hashicorp/random"
+      version = "3.4.3"
     }
   }
 }
-
-provider "random" {}
 
 locals {
   group_list = [
@@ -19,14 +18,6 @@ locals {
   ]
 }
 
-variable "group_number" {
-  type = number
-}
-
 resource "random_shuffle" "shuffled" {
   input = local.group[var.group_number]
-}
-
-output "shuffled_list" {
-  value = random_shuffle.shuffled.result
 }
