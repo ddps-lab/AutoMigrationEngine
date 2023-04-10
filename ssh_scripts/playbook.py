@@ -4,7 +4,7 @@ import json
 
 
 def scenario1(group_number):
-    with open("ansible/inventory_" + group_number + ".txt") as f:
+    with open("ssh_scripts/inventory_" + group_number + ".txt") as f:
         hosts = f.readlines()
     hosts = [host.strip() for host in hosts]
 
@@ -43,14 +43,16 @@ def scenario1(group_number):
                                   ] = inventory["dst"]["hosts"].pop(dst_hosts[0])
 
         # Update dynamic inventory file
-        with open("ansible/inventory_" + group_number + ".json", "w") as f:
+        with open("ssh_scripts/inventory_" + group_number + ".json", "w") as f:
             json.dump(inventory, f)
 
         with open(f'group{group_number}.log', 'a') as f:
-            subprocess.run(["ansible-playbook", "ansible/playbook.yml", "-i",
-                           "ansible/inventory_" + group_number + ".json"], stdout=f, stderr=f)
+            subprocess.run(["ansible-playbook", "ssh_scripts/playbook.yml", "-i",
+                           "ssh_scripts/inventory_" + group_number + ".json"], stdout=f, stderr=f)
 
         time.sleep(5)
+
+        break
 
     end_time = time.time()
     total_time = end_time - start_time
@@ -58,13 +60,13 @@ def scenario1(group_number):
 
 
 def scenario2(src, dst):
-    with open("ansible/inventory_" + src + ".txt") as f:
+    with open("ssh_scripts/inventory_" + src + ".txt") as f:
         sources = f.readlines()
     sources = [src.strip() for src in sources]
 
     destinations = []
     for i in range(len(dst)):
-        with open("ansible/inventory_" + str(dst[i]) + ".txt") as f:
+        with open("ssh_scripts/inventory_" + str(dst[i]) + ".txt") as f:
             dst_group = f.readlines()
         destinations += [dst.strip() for dst in dst_group]
 
@@ -97,14 +99,14 @@ def scenario2(src, dst):
         inventory["src"]["hosts"] = sources[i]
 
         # Update dynamic inventory file
-        with open("ansible/inventory.json", "w") as f:
+        with open("ssh_scripts/inventory.json", "w") as f:
             json.dump(inventory, f)
 
         with open(f'ansible.log', 'a') as f:
-            subprocess.run(["ansible-playbook", "ansible/playbook.yml", "-i", "ansible/inventory.json"], stdout=f, stderr=f)
+            subprocess.run(["ansible-playbook", "ssh_scripts/playbook.yml",
+                           "-i", "ssh_scripts/inventory.json"], stdout=f, stderr=f)
 
         time.sleep(5)
-
 
     end_time = time.time()
     total_time = end_time - start_time

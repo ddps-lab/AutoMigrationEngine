@@ -1,0 +1,1 @@
+{"all": {"vars": {"ansible_user": "ec2-user", "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'"}, "hosts": {}}, "src": {"hosts": {"34.217.130.226": null}}, "dst": {"hosts": {"34.221.222.150": null, "35.93.143.14": null, "35.91.118.154": null, "34.214.76.47": null, "34.212.254.72": null, "54.149.214.208": null}}}

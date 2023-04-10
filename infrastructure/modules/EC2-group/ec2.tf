@@ -31,7 +31,7 @@ resource "null_resource" "init_inventory" {
   ]
 
   provisioner "local-exec" {
-    command = "rm ../../ansible/inventory_${var.group_number}.txt || true"
+    command = "rm ../../ssh_scripts/inventory_${var.group_number}.txt || true"
   }
 }
 
@@ -42,6 +42,6 @@ resource "null_resource" "write_inventory" {
   ]
 
   provisioner "local-exec" {
-    command = "echo '${aws_instance.ec2[count.index].public_ip}' >> ../../ansible/inventory_${var.group_number}.txt"
+    command = "echo '${aws_instance.ec2[count.index].public_ip}' >> ../../ssh_scripts/inventory_${var.group_number}.txt"
   }
 }

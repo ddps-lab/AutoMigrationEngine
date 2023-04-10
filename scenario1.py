@@ -4,7 +4,7 @@ import time
 import datetime
 import boto3
 
-import ansible.playbook as playbook
+import ssh_scripts.playbook as playbook
 
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
@@ -15,9 +15,9 @@ start_time = datetime.datetime.now()
 
 # create infrastructure by group 
 with open(f'terraform.log', 'w') as f: # Created separately for reuse of some resources, such as VPCs
-    p = subprocess.Popen(['terraform', 'apply', '-auto-approve', '-target', 'module.shuffle_instances'], cwd='terraform/Scenario1', stdout=f, stderr=f, encoding='utf-8')
+    p = subprocess.Popen(['terraform', 'apply', '-auto-approve', '-target', 'module.shuffle_instances'], cwd='infrastructure/Scenario1', stdout=f, stderr=f, encoding='utf-8')
     p.wait()
-    p = subprocess.Popen(['terraform', 'apply', '-auto-approve'], cwd='terraform/Scenario1', stdout=f, stderr=f, encoding='utf-8')
+    p = subprocess.Popen(['terraform', 'apply', '-auto-approve'], cwd='infrastructure/Scenario1', stdout=f, stderr=f, encoding='utf-8')
     p.wait()
 
 print('\nComplete infrastructure creation')
@@ -80,7 +80,7 @@ for thread in threads:
 
 # destroy infrastructure by group 
 with open(f'terraform.log', 'a') as f:
-    p = subprocess.Popen(['terraform', 'destroy', '-auto-approve'], cwd='terraform/Scenario1', stdout=f, stderr=f)
+    p = subprocess.Popen(['terraform', 'destroy', '-auto-approve'], cwd='infrastructure/Scenario1', stdout=f, stderr=f)
     p.wait()
 
 end_time = datetime.datetime.now()
