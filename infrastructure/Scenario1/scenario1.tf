@@ -15,7 +15,7 @@ module "vpc" {
 }
 
 module "efs" {
-  count             = 1
+  count             = 10
   source            = "../modules/EFS"
   resource_prefix   = var.resource_prefix
   group_number      = count.index
@@ -26,7 +26,7 @@ module "efs" {
 
 
 module "ec2" {
-  count                   = 1
+  count                   = 10
   source                  = "../modules/EC2-group"
   group_number            = count.index
   shuffled_instance_group = module.shuffle_instances.shuffled_instance_group[count.index].result

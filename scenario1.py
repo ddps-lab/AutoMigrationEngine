@@ -9,7 +9,7 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-GROUP_NUMBER = 1
+GROUP_NUMBER = 10
 
 start_time = datetime.datetime.now()
 

@@ -52,8 +52,6 @@ def scenario1(group_number):
 
         time.sleep(5)
 
-        break
-
     end_time = time.time()
     total_time = end_time - start_time
     print("total execution time: {:.2f}".format(total_time))
