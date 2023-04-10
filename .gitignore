@@ -3,7 +3,7 @@ infrastructure/*/*.tfstate*
 infrastructure/*/.terraform
 infrastructure/*/.terraform.*
 
-ssh-scripts/inventory*
+ssh_scripts/inventory*
 
 *DS_Store*
 
