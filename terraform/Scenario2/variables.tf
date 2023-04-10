@@ -22,3 +22,7 @@ variable "key_name" {
   type    = string
   default = "junho_us"
 }
+
+variable "group" {
+  type = list(any)
+}

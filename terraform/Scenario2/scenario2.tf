@@ -26,10 +26,10 @@ module "efs" {
 
 
 module "ec2" {
-  count                   = 10
+  count                   = length(var.group)
   source                  = "../modules/EC2-group"
   group_number            = count.index
-  shuffled_instance_group = module.shuffle_instances.shuffled_instance_group[count.index].result
+  shuffled_instance_group = module.shuffle_instances.shuffled_instance_group[var.group[count.index]].result
   ami_id                  = var.ami_id
   key_name                = var.key_name
   availability_zone       = var.availability_zone
