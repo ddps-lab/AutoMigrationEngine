@@ -13,30 +13,11 @@ GROUP_NUMBER = 1
 
 start_time = datetime.datetime.now()
 
-# initialize workspace
-for i in range(GROUP_NUMBER):
-    subprocess.run(['terraform', 'workspace', 'delete', 'group' + str(i)], cwd='terraform')
-    time.sleep(1)
-    subprocess.run(['terraform', 'workspace', 'new', 'group' + str(i)], cwd='terraform')
-
 # create infrastructure by group 
-subprocess.run(['terraform', 'workspace', 'select', 'group0'], cwd='terraform')
-time.sleep(1)
-with open(f'group0.log', 'w') as f: # Created separately for reuse of some resources, such as VPCs
-    p = subprocess.Popen(['terraform', 'apply', '-auto-approve', '-lock=false', '-var=group_number=0'], cwd='terraform', stdout=f, stderr=f, encoding='utf-8')
-
-p.wait()
-
-processes = []
-for i in range(1, GROUP_NUMBER):
-    subprocess.run(['terraform', 'workspace', 'select', 'group' + str(i)], cwd='terraform')
-    time.sleep(5)
-    with open(f'group{i}.log', 'w') as f:
-        processes.append(subprocess.Popen(['terraform', 'apply', '-auto-approve', '-lock=false', '-var=group_number=' + str(i)], cwd='terraform', stdout=f, stderr=f))
-    time.sleep(5)
-
-# wait for the infrastructure to be created
-for p in processes:
+with open(f'terraform.log', 'w') as f: # Created separately for reuse of some resources, such as VPCs
+    p = subprocess.Popen(['terraform', 'apply', '-auto-approve', '-target', 'module.shuffle_instances'], cwd='terraform/Scenario1', stdout=f, stderr=f, encoding='utf-8')
+    p.wait()
+    p = subprocess.Popen(['terraform', 'apply', '-auto-approve'], cwd='terraform/Scenario1', stdout=f, stderr=f, encoding='utf-8')
     p.wait()
 
 print('\nComplete infrastructure creation')
@@ -80,6 +61,8 @@ while True:
     
 print('Pass all instance health checks')
 
+subprocess.run(['rm', '-f', 'group*.log'])
+
 # Execute an Ansible command to start the container migration test.
 def worker(group_num):
     playbook.start(str(group_num))
@@ -96,16 +79,8 @@ for thread in threads:
     thread.join()
 
 # destroy infrastructure by group 
-processes = []
-for i in range(GROUP_NUMBER):
-    subprocess.run(['terraform', 'workspace', 'select', 'group' + str(i)], cwd='terraform')
-    time.sleep(5)
-    with open(f'group{i}.log', 'a') as f:
-        processes.append(subprocess.Popen(['terraform', 'destroy', '-auto-approve', '-lock=false', '-var=group_number=' + str(i)], cwd='terraform', stdout=f, stderr=f))
-    time.sleep(5)
-
-# wait for the infrastructure to be deleted
-for p in processes:
+with open(f'terraform.log', 'a') as f:
+    p = subprocess.Popen(['terraform', 'destroy', '-auto-approve'], cwd='terraform/Scenario1', stdout=f, stderr=f)
     p.wait()
 
 end_time = datetime.datetime.now()

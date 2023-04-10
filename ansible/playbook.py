@@ -14,7 +14,6 @@ def start(group_number):
             "vars": {
                 "ansible_user": "ec2-user",
                 "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
-                #  "ansible_ssh_private_key_file": "~/AWS/junho_us.pem",
             },
             "hosts": {},
         },

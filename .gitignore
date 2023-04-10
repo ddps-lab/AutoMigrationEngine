@@ -8,6 +8,7 @@ ansible/inventory*
 *DS_Store*
 
 group*.log
+*tf.log
 
 secure-outpost*
 
