@@ -42,37 +42,6 @@ resource "aws_route_table" "route_table" {
   }
 }
 
-resource "aws_security_group" "security_group" {
-  name_prefix = "${var.resource_prefix}_Security_group"
-
-  vpc_id = aws_vpc.vpc.id
-
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port = 8888
-    to_port = 8888
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.resource_prefix}_Security_group"
-  }
-}
-
 resource "aws_route_table_association" "route_table_association" {
   subnet_id = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.route_table.id
