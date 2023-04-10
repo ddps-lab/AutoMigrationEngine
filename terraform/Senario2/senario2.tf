@@ -15,7 +15,7 @@ module "vpc" {
 }
 
 module "efs" {
-  count             = 10
+  count = 1
   source            = "../modules/EFS"
   resource_prefix   = var.resource_prefix
   group_number      = count.index
@@ -35,7 +35,7 @@ module "ec2" {
   availability_zone       = var.availability_zone
   public_subnet_id        = module.vpc.public_subnet_id
   security_group_id       = aws_security_group.ec2_security_group.id
-  efs_dns_name            = module.efs[count.index].efs_dns_name
+  efs_dns_name            = module.efs[0].efs_dns_name
 
   depends_on = [
     module.shuffle_instances,
