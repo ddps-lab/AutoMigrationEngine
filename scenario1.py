@@ -65,7 +65,7 @@ subprocess.run(['rm', '-f', 'group*.log'])
 
 # Execute an Ansible command to start the container migration test.
 def worker(group_num):
-    playbook.start(str(group_num))
+    playbook.scenario1(str(group_num))
 
 threads = []
 for i in range(GROUP_NUMBER):

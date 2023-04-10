@@ -3,7 +3,7 @@ import time
 import json
 
 
-def start(group_number):
+def scenario1(group_number):
     with open("ansible/inventory_" + group_number + ".txt") as f:
         hosts = f.readlines()
     hosts = [host.strip() for host in hosts]
@@ -51,8 +51,6 @@ def start(group_number):
                            "ansible/inventory_" + group_number + ".json"], stdout=f, stderr=f)
 
         time.sleep(5)
-
-        break
 
     end_time = time.time()
     total_time = end_time - start_time
