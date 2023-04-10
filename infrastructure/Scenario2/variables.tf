@@ -24,5 +24,5 @@ variable "key_name" {
 }
 
 variable "group" {
-  type = list(any)
+  type = list
 }

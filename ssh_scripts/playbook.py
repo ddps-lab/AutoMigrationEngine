@@ -58,7 +58,7 @@ def scenario1(group_number):
 
 
 def scenario2(src, dst):
-    with open("ssh_scripts/inventory_" + src + ".txt") as f:
+    with open("ssh_scripts/inventory_" + str(src) + ".txt") as f:
         sources = f.readlines()
     sources = [src.strip() for src in sources]
 
