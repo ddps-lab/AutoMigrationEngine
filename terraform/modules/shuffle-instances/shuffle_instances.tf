@@ -19,5 +19,6 @@ locals {
 }
 
 resource "random_shuffle" "shuffled" {
-  input = local.group[var.group_number]
+  count = 10
+  input = local.group[count.index]
 }

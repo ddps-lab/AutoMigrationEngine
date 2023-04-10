@@ -1,9 +1,9 @@
-resource "aws_instance" "test" {
-  count = length(var.instance_group)
+resource "aws_instance" "ec2" {
+  count = length(var.shuffled_instance_group)
   instance_type = var.shuffled_instance_group[count.index]
-  ami = "ami-0c7a974f58b92cfc6" # migration compatibility test on x86
-  key_name = "junho_us"
-  availability_zone = "us-west-2a"
+  ami = var.ami_id # migration compatibility test on x86
+  key_name = var.key_name
+  availability_zone = var.availability_zone
   subnet_id = var.public_subnet_id
   
   vpc_security_group_ids = [
@@ -26,7 +26,7 @@ resource "aws_instance" "test" {
 
 resource "null_resource" "init_inventory" {
   depends_on = [
-    aws_instance.test
+    aws_instance.ec2
   ]
 
   provisioner "local-exec" {
@@ -35,12 +35,12 @@ resource "null_resource" "init_inventory" {
 }
 
 resource "null_resource" "write_inventory" {
-  count = length(var.instance_group)
+  count = length(var.shuffled_instance_group)
   depends_on = [
     null_resource.init_inventory
   ]
 
   provisioner "local-exec" {
-    command = "echo '${aws_instance.test[count.index].public_ip}' >> ../../ansible/inventory_${var.group_number}.txt"
+    command = "echo '${aws_instance.ec2[count.index].public_ip}' >> ../../ansible/inventory_${var.group_number}.txt"
   }
 }

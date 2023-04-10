@@ -2,11 +2,19 @@ variable "group_number" {
   type = number
 }
 
-variable "shuffled_instance_group" {
-  type = list
+variable "ami_id" {
+  type = string
 }
 
-variable "instance_group" {
+variable "key_name" {
+  type = string
+}
+
+variable "availability_zone" {
+  type = string
+}
+
+variable "shuffled_instance_group" {
   type = list
 }
 

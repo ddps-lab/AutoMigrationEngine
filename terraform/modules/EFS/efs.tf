@@ -1,15 +1,15 @@
 resource "aws_efs_file_system" "efs" {
-  creation_token = "junho_efs_${var.group_number}"
+  creation_token = "${var.resource_prefix}_efs_${var.group_number}"
   performance_mode = "generalPurpose"
   encrypted = true
 
   tags = {
-    Name = "junho-efs"
+    Name = "${var.resource_prefix}_efs_${var.group_number}"
   }
 }
 
 resource "aws_security_group" "efs_security_group" {
-  name_prefix = "efs_security_group_${var.group_number}"
+  name_prefix = "${var.resource_prefix}_efs_sg_${var.group_number}"
 
   vpc_id = var.vpc_id
 
@@ -24,5 +24,5 @@ resource "aws_security_group" "efs_security_group" {
 resource "aws_efs_mount_target" "mount_target" {
   file_system_id  = aws_efs_file_system.efs.id
   subnet_id = var.public_subnet_id
-  security_groups = [var.security_group_id]
+  security_groups = [aws_security_group.efs_security_group.id]
 }

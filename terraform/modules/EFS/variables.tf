@@ -10,6 +10,6 @@ variable "public_subnet_id" {
   type = string
 }
 
-variable "security_group_id" {
+variable "resource_prefix" {
   type = string
 }
