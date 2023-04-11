@@ -22,7 +22,7 @@ TransferableGroups = [
 ]
 
 # remove previous log
-subprocess.run(['rm', '-f', 'group*.log'])
+subprocess.run(['rm', 'ansible.log'])
 
 start_time = datetime.datetime.now()
 for i in range(len(TransferableGroups)):
@@ -79,14 +79,20 @@ for i in range(len(TransferableGroups)):
 
     print('Pass all instance health checks')
 
-    # Execute an Ansible command to start the container migration test.
-    playbook.scenario2(TransferableGroups[i][0], TransferableGroups[i][1:])
+    for _ in range(len(TransferableGroups[i])):
+        # Execute an Ansible command to start the container migration test.
+        playbook.scenario2(TransferableGroups[i][0], TransferableGroups[i][1:])
+
+        temp = TransferableGroups[i].pop()
+        TransferableGroups[i].insert(i, temp)
 
     # destroy infrastructure by group
     with open(f'terraform.log', 'a') as f:
         p = subprocess.Popen(['terraform', 'destroy', '-auto-approve', '-var', f'group={TransferableGroups[i]}'],
                              cwd='infrastructure/Scenario2', stdout=f, stderr=f)
         p.wait()
+
+    break
 
 end_time = datetime.datetime.now()
 
