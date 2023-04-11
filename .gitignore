@@ -1,14 +1,13 @@
-infrastructure/.terraform
 infrastructure/*/*.tfstate*
 infrastructure/*/.terraform
 infrastructure/*/.terraform.*
+terraform.log
 
 ssh_scripts/inventory*
 
 *DS_Store*
 
 group*.log
-*tf.log
 
 secure-outpost*
 
