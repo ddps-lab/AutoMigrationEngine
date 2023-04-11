@@ -14,6 +14,11 @@
     - name: Create container
       shell: /home/ec2-user/podman/create_container.sh -t
 
+    - name: wait for 5 sec
+      wait_for:
+        timeout: 5
+      register: result
+
     - name: Execute workload
       shell: /home/ec2-user/podman/execute_workload_in_container.sh
 
