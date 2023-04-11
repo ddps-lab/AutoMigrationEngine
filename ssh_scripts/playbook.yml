@@ -92,6 +92,6 @@
         rm /home/ec2-user/podman/log/performance.log
         rm /home/ec2-user/podman/log/timestamp.log
 
-    # - name: Upload to S3
-    #   shell: |
-    #     aws s3 cp /home/ec2-user/podman/log/* s3://container-migration-log
+    - name: Upload to S3
+      shell: |
+        aws s3 cp /home/ec2-user/podman/log/* s3://container-migration-log
