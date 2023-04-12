@@ -10,7 +10,7 @@ provider "random" {}
 
 locals {
   group_list = [
-    for row in csvdecode(file("../CPU Feature Visualization - groupby aws(core).csv")) : row["feature groups"]
+    for row in csvdecode(file("CPU Feature Visualization - simplized aws group(core).csv")) : row["feature groups"]
   ]
 
   group = [

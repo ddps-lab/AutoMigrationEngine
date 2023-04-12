@@ -6,3 +6,11 @@ terraform/.terraform.*
 ansible/inventory*
 
 *DS_Store*
+
+group*.log
+
+secure-outpost*
+
+.vscode/*
+
+__pycache__
