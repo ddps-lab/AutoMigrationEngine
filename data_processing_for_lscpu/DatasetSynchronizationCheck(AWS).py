@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 # module 경로 추가
-sys.path.append(str(Path(__file__).resolve().parent.joinpath('module')))
+sys.path.append(str(Path(__file__).resolve().parent.joinpath('modules')))
 
 import GspreadUtils
 
@@ -46,7 +46,7 @@ print(f"Number of createable x86_64 instances : {len(createable_x86_64_instances
 print(f"Number of createable arm64 instances : {len(createable_arm64_instances)}")
 print(f"Number of unsupported instances : {len(unsupported_instances)}")
 
-df = GspreadUtils.read_gspread('groupby aws(core)')
+df = GspreadUtils.read_gspread('groupby aws(all)')
 featureGroups = df['feature groups'].tolist()
 groups = []
 
