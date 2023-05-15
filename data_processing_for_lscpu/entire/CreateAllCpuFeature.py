@@ -8,7 +8,7 @@ import ReadCsv
 import CPUFeatures_h
 import GspreadUtils
 
-CPU_FEATURES = CPUFeatures_h.all_CPU_features_simplification_by_lscpu()
+CPU_FEATURES = CPUFeatures_h.all_flags_simplification()
 
 df = ReadCsv.read_csv(CPU_FEATURES)
 
