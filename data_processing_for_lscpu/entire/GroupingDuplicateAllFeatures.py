@@ -29,7 +29,6 @@ df_new = pd.DataFrame(columns=columns)
 
 for flags, group in grouped:
     i += 1
-    # print(f"group{i}: {group['InstanceType'].tolist()}")
     instanceTypes = ', '.join(group['InstanceType'].tolist())
 
     eachFlag = group[CPU_FEATURES]
