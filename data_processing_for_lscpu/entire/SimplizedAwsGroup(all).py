@@ -19,7 +19,7 @@ for i in range(len(df)):
 
 sizelist = ['nano', 'micro', 'small', 'medium', 'large', 'xlarge', '2xlarge', '3xlarge', '4xlarge', '6xlarge', '8xlarge', '9xlarge', 
             '10xlarge', '12xlarge', '16xlarge', '18xlarge', '24xlarge', '32xlarge', '48xlarge', '56xlarge', '112xlarge', 'metal']
-acceleratedType = ['p4', 'p3', 'p2', 'dl1', 'trn1', 'inf2', 'inf1', 'g5', 'g5g', 'g4dn', 'g4ad', 'g3', 'f1', 'vt1']
+acceleratedType = ['p4', 'p3', 'p3dn', 'p2', 'dl1', 'trn1', 'inf2', 'inf1', 'g5', 'g5g', 'g4dn', 'g4ad', 'g3', 'g3s', 'f1', 'vt1']
 newgroup = []
 newgroups = []
 typelist = []
@@ -124,4 +124,4 @@ else:
     for i in range(len(simplized_group)):
         df.at[i, 'feature groups'] = ', '.join(simplized_group[i])
 
-# GspreadUtils.write_gspread('simplized aws group(all)', df)
+GspreadUtils.write_gspread('simplized aws group(all)', df)
