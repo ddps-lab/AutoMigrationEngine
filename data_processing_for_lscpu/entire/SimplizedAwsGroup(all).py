@@ -89,9 +89,11 @@ for group in newgroups:
             if(len(result) == 0):
                 tempgroup.append(instance)
     simplized_group.append(tempgroup)
+    
+df = GspreadUtils.read_gspread('groupby aws(all)')
 
 # 단일 인스턴스만 남은 그룹 제거
-if(False):
+if(True):
     final_experiment_set = []
     deleted_index = []
     # Remove a group with 1 instance
@@ -119,9 +121,7 @@ if(False):
     for i in range(len(final_experiment_set)):
         df.at[i, 'feature groups'] = ', '.join(final_experiment_set[i])
 else:
-    df = GspreadUtils.read_gspread('groupby aws(all)')
-
     for i in range(len(simplized_group)):
         df.at[i, 'feature groups'] = ', '.join(simplized_group[i])
 
-GspreadUtils.write_gspread('simplized aws group(all)', df)
+GspreadUtils.write_gspread('simplized aws group(all, exclude single-element groups)', df)

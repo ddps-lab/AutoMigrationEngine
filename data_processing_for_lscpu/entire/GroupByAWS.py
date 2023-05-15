@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).resolve().parent.joinpath('..', 'modules')))
 import CPUFeatures_h
 import GspreadUtils
 
-CPU_FEATURES = CPUFeatures_h.all_flags_simplification()
+CPU_FEATURES = CPUFeatures_h.all_CPU_features_simplification_by_lscpu()
 
 df = GspreadUtils.read_gspread('all features')
 df = df.loc[df['CloudProvider'] == 'AWS']
@@ -29,7 +29,6 @@ df_new = pd.DataFrame(columns=columns)
 
 for features, group in grouped:
     i += 1
-    # print(f"group{i}: {group['InstanceType'].tolist()}")
     instanceTypes = ', '.join(group['InstanceType'].tolist())
 
     eachFlag = group[CPU_FEATURES]
