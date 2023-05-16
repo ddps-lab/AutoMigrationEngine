@@ -1,0 +1,107 @@
+---
+- name: Migration compatibility check - src
+  hosts: src
+  tasks:
+    - name: Initialize source instance
+      shell: |
+        sudo rm -rf /home/ubuntu/migration_test/dump/*
+        sudo rm -rf /home/ubuntu/migration_test/*.json
+        sudo rm -rf /home/ubuntu/migration_test/result.log
+        sudo kill -9 $(pgrep -f matrix_mul.py)
+      ignore_errors: yes
+
+    - name: Start workload
+      shell: nohup python3 /home/ubuntu/migration_test/matrix_mul.py 1>/dev/null 2>&1 &
+
+    - name: logging - write the src instance type
+      shell: |
+        echo $(curl http://169.254.169.254/latest/meta-data/instance-type) > /home/ubuntu/migration_test/dump/performance.log
+
+    - name: wait for 5 sec
+      wait_for:
+        timeout: 5
+      register: result
+
+    - name: logging - write the checkpoint start time
+      shell: |
+        echo start checkpoint : $(date +'%Y-%m-%dT%H:%M:%S') > /home/ubuntu/migration_test/dump/timestamp.log
+
+    - name: Get workload PID
+      shell: pgrep -f matrix_mul.py
+      register: PID
+    
+    - name: Checkpoint workload
+      shell: |
+        sudo criu dump -j --display-stats -D /home/ubuntu/migration_test/dump -t {{ PID.stdout_lines[0] }} >> /home/ubuntu/migration_test/dump/performance.log
+
+    - name: logging - write the checkpoint end time
+      shell: |
+        echo end checkpoint : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/dump/timestamp.log
+
+    - name: Move the workload log to the dump directory
+      shell: |
+        mv /home/ubuntu/migration_test/result.log /home/ubuntu/migration_test/dump
+  
+- name : Migration compatibility check - dst
+  hosts: dst
+  tasks:
+    - name: Initialize destination instance
+      shell: |
+        sudo rm -rf /home/ubuntu/migration_test/*.json
+        sudo rm -rf /home/ubuntu/migration_test/result.log
+        sudo kill -9 $(pgrep -f matrix_mul.py)
+      ignore_errors: yes
+
+    - name: logging - write the dst instance type
+      shell: |
+        INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type) && \
+        sed -i "2i $INSTANCE_TYPE" /home/ubuntu/migration_test/dump/performance.log
+
+    - name: Copy the workload log from the dump directory
+      shell: |
+        cp /home/ubuntu/migration_test/dump/result.log /home/ubuntu/migration_test/result.log
+
+    - name: logging - write the restore start time
+      shell: |
+        echo start restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/dump/timestamp.log
+
+    - name: Restore workload
+      shell: |
+        sudo nohup criu restore -j --display-stats -D /home/ubuntu/migration_test/dump >> /home/ubuntu/migration_test/dump/performance.log 2>&1 &
+
+    - name: logging - write the restore end time
+      shell: |
+        echo end restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/dump/timestamp.log
+
+    - name: wait for 5 sec
+      wait_for:
+        timeout: 5
+      register: result
+
+    - name: workload knocking - check the health of process
+      shell: |
+        pgrep -f matrix_mul.py
+      register: PID
+
+    - name: workload knocking - check the persistence of the task
+      shell: |
+        grep -c '^count: 0' /home/ubuntu/migration_test/result.log
+      register: count
+
+    - name: logging - write the workload state
+      shell: |
+        echo migration success : true >> /home/ubuntu/migration_test/dump/timestamp.log
+      when: PID.stdout_lines | length > 0 and count.stdout | int == 1 # migration success
+
+    - name: logging - write the workload state
+      shell: |
+        echo migration success : false >> /home/ubuntu/migration_test/dump/timestamp.log
+      when: PID.stdout_lines | length <= 0 or count.stdout | int != 1 # migration fail
+
+    - name: Log to JSON
+      shell: |
+        python3 /home/ubuntu/migration_test/log_to_json.py > /home/ubuntu/migration_test/"$(sed -n '1p' /home/ubuntu/migration_test/dump/performance.log)_to_$(sed -n '2p' /home/ubuntu/migration_test/dump/performance.log).json"
+
+    - name: Upload to S3
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*.json s3://migration-compatibility
