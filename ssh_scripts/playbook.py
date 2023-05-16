@@ -11,7 +11,7 @@ def scenario1(group_number):
     inventory = {
         "all": {
             "vars": {
-                "ansible_user": "ec2-user",
+                "ansible_user": "ubuntu",
                 "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
             },
             "hosts": {},
@@ -47,7 +47,7 @@ def scenario1(group_number):
             json.dump(inventory, f)
 
         with open(f'group{group_number}.log', 'a') as f:
-            subprocess.run(["ansible-playbook", "ssh_scripts/playbook.yml", "-i",
+            subprocess.run(["ansible-playbook", "ssh_scripts/without-container.yml", "-i",
                            "ssh_scripts/inventory_" + group_number + ".json"], stdout=f, stderr=f)
 
         time.sleep(5)
@@ -71,7 +71,7 @@ def scenario2(src, dst):
     inventory = {
         "all": {
             "vars": {
-                "ansible_user": "ec2-user",
+                "ansible_user": "ubuntu",
                 "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
             },
             "hosts": {},
@@ -101,7 +101,7 @@ def scenario2(src, dst):
             json.dump(inventory, f)
 
         with open(f'ansible.log', 'a') as f:
-            subprocess.run(["ansible-playbook", "ssh_scripts/playbook.yml",
+            subprocess.run(["ansible-playbook", "ssh_scripts/without-container.yml",
                            "-i", "ssh_scripts/inventory.json"], stdout=f, stderr=f)
 
         time.sleep(5)

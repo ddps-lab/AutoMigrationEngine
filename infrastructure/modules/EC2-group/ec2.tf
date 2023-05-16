@@ -1,6 +1,6 @@
 resource "aws_instance" "ec2" {
-  count = length(var.shuffled_instance_group)
-  instance_type = var.shuffled_instance_group[count.index]
+  count = length(var.instance_group)
+  instance_type = var.instance_group[count.index]
   ami = var.ami_id # migration compatibility test on x86
   key_name = var.key_name
   availability_zone = var.availability_zone
@@ -11,16 +11,16 @@ resource "aws_instance" "ec2" {
   ]
 
   tags = {
-    "Name" = "container-migration-test_${var.shuffled_instance_group[count.index]}"
+    "Name" = "container-migration-test_${var.instance_group[count.index]}"
   }
 
   user_data = <<-EOF
             #!/bin/bash
             sleep 30
-            mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${var.efs_dns_name}:/ /home/ec2-user/podman/dump
-            sudo chown ec2-user:ec2-user /home/ec2-user/podman/dump
+            mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${var.efs_dns_name}:/ /home/ubuntu/migration_test/dump
+            sudo chown ubuntu:ubuntu /home/ubuntu/migration_test/dump
             sudo timedatectl set-timezone 'Asia/Seoul'
-            sudo hostnamectl set-hostname ${var.shuffled_instance_group[count.index]}
+            sudo hostnamectl set-hostname ${var.instance_group[count.index]}
             EOF
 }
 
@@ -36,7 +36,7 @@ resource "null_resource" "init_inventory" {
 }
 
 resource "null_resource" "write_inventory" {
-  count = length(var.shuffled_instance_group)
+  count = length(var.instance_group)
   depends_on = [
     null_resource.init_inventory
   ]
