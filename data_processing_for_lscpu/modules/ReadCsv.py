@@ -18,7 +18,7 @@ def read_csv(CPU_FEATURES):
     df = pd.concat([df, pd.DataFrame(columns=CPU_FEATURES)], axis=1)
 
     # remove the unsupported instance type by AWS
-    unsupported = ['m2.2xlarge', 'm2.4xlarge', 'm2.xlarge', 't1.micro', 'c1.xlarge', 'm1.large', 'm1.medium', 'm1.small', 'm1.xlarge', 'c3.2xlarge', 'c3.4xlarge', 'c3.8xlarge', 'c3.large', 'c3.xlarge', 'g2.2xlarge', 'i2.2xlarge', 'i2.4xlarge', 'i2.8xlarge', 'i2.xlarge', 'm3.2xlarge', 'm3.large', 'm3.medium', 'm3.xlarge', 'r3.2xlarge', 'r3.4xlarge', 'r3.8xlarge', 'r3.large', 'r3.xlarge']
+    unsupported = ['m2.2xlarge', 'm2.4xlarge', 'm2.xlarge', 't1.micro', 'c1.xlarge', 'm1.large', 'm1.medium', 'm1.small', 'm1.xlarge', 'c3.2xlarge', 'c3.4xlarge', 'c3.8xlarge', 'c3.large', 'c3.xlarge', 'g2.2xlarge', 'i2.2xlarge', 'i2.4xlarge', 'i2.8xlarge', 'i2.xlarge', 'm3.2xlarge', 'm3.large', 'm3.medium', 'm3.xlarge', 'r3.2xlarge', 'r3.4xlarge', 'r3.8xlarge', 'r3.large', 'r3.xlarge', 'u-18tb1.112xlarge']
     
     for instance in unsupported:
         df = df.drop(df[df['InstanceType'] == instance].index)
