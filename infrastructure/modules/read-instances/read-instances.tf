@@ -17,8 +17,3 @@ locals {
       split(", ", group)
   ]
 }
-
-resource "random_shuffle" "shuffled" {
-  count = 10
-  input = local.group[count.index]
-}

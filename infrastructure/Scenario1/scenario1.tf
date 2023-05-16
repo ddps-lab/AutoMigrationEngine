@@ -3,9 +3,9 @@ provider "aws" {
   region  = var.region
 }
 
-module "shuffle_instances" {
-  source    = "../modules/shuffle-instances"
-  file_path = "../CPU Feature Visualization - simplized aws group(core).csv"
+module "read-instances" {
+  source    = "../modules/read-instances"
+  file_path = "../CPU Feature Visualization - simplized aws group(all, exclude single-element groups).csv"
 }
 
 module "vpc" {
@@ -15,7 +15,7 @@ module "vpc" {
 }
 
 module "efs" {
-  count             = 10
+  count             = 22
   source            = "../modules/EFS"
   resource_prefix   = var.resource_prefix
   group_number      = count.index
@@ -26,19 +26,19 @@ module "efs" {
 
 
 module "ec2" {
-  count                   = 10
-  source                  = "../modules/EC2-group"
-  group_number            = count.index
-  shuffled_instance_group = module.shuffle_instances.shuffled_instance_group[count.index].result
-  ami_id                  = var.ami_id
-  key_name                = var.key_name
-  availability_zone       = var.availability_zone
-  public_subnet_id        = module.vpc.public_subnet_id
-  security_group_id       = aws_security_group.ec2_security_group.id
-  efs_dns_name            = module.efs[count.index].efs_dns_name
+  count             = 22
+  source            = "../modules/EC2-group"
+  group_number      = count.index
+  instance_group    = module.read-instances.instance_group[count.index]
+  ami_id            = var.ami_id
+  key_name          = var.key_name
+  availability_zone = var.availability_zone
+  public_subnet_id  = module.vpc.public_subnet_id
+  security_group_id = aws_security_group.ec2_security_group.id
+  efs_dns_name      = module.efs[count.index].efs_dns_name
 
   depends_on = [
-    module.shuffle_instances,
+    module.read-instances,
     module.efs
   ]
 }
