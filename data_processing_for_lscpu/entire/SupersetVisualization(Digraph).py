@@ -7,11 +7,9 @@ sys.path.append(str(Path(__file__).resolve().parent.joinpath('..', 'modules')))
 import GspreadUtils
 import Transferable
 
-df = GspreadUtils.read_gspread('feature groups(all)')
+df = GspreadUtils.read_gspread('simplized aws group(all)')
 featureGroups = df['feature groups'].tolist()
-
 df = df.drop('feature groups', axis=1)
-df = df.drop('Flags', axis=1)
 
 GROUP_NUMBER = 37
 Transferable.Digraph(GROUP_NUMBER, df)
