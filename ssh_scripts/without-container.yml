@@ -6,7 +6,7 @@
       shell: |
         sudo rm -rf /home/ubuntu/migration_test/dump/*
         sudo rm -rf /home/ubuntu/migration_test/*.json
-        sudo rm -rf /home/ubuntu/migration_test/result.log
+        sudo rm -rf /home/ubuntu/migration_test/*.log
         sudo kill -9 $(pgrep -f matrix_mul.py)
       ignore_errors: yes
 
@@ -48,59 +48,49 @@
     - name: Initialize destination instance
       shell: |
         sudo rm -rf /home/ubuntu/migration_test/*.json
-        sudo rm -rf /home/ubuntu/migration_test/result.log
+        sudo rm -rf /home/ubuntu/migration_test/*.log
         sudo kill -9 $(pgrep -f matrix_mul.py)
       ignore_errors: yes
+
+    - name: Copy the log from the dump directory
+      shell: |
+        cp /home/ubuntu/migration_test/dump/*.log /home/ubuntu/migration_test
 
     - name: logging - write the dst instance type
       shell: |
         INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type) && \
-        sed -i "2i $INSTANCE_TYPE" /home/ubuntu/migration_test/dump/performance.log
-
-    - name: Copy the workload log from the dump directory
-      shell: |
-        cp /home/ubuntu/migration_test/dump/result.log /home/ubuntu/migration_test/result.log
+        sed -i "2i $INSTANCE_TYPE" /home/ubuntu/migration_test/performance.log
 
     - name: logging - write the restore start time
       shell: |
-        echo start restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/dump/timestamp.log
+        echo start restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
 
     - name: Restore workload
       shell: |
-        sudo nohup criu restore -j --display-stats -D /home/ubuntu/migration_test/dump >> /home/ubuntu/migration_test/dump/performance.log 2>&1 &
+        sudo nohup criu restore -j --display-stats -D /home/ubuntu/migration_test/dump >> /home/ubuntu/migration_test/performance.log 2>&1 &
 
     - name: logging - write the restore end time
       shell: |
-        echo end restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/dump/timestamp.log
+        echo end restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
 
     - name: wait for 5 sec
       wait_for:
         timeout: 5
       register: result
 
-    - name: workload knocking - check the health of process
+    - name: workload knocking - Check the health of process
       shell: |
-        pgrep -f matrix_mul.py
-      register: PID
+        cat /home/ubuntu/migration_test/result.log >> /home/ubuntu/migration_test/count.log
+        sleep 3
+        cat /home/ubuntu/migration_test/result.log >> /home/ubuntu/migration_test/count.log
 
-    - name: workload knocking - check the persistence of the task
+    - name: logging - write the workload state(true)
       shell: |
-        grep -c '^count: 0' /home/ubuntu/migration_test/result.log
-      register: count
-
-    - name: logging - write the workload state
-      shell: |
-        echo migration success : true >> /home/ubuntu/migration_test/dump/timestamp.log
-      when: PID.stdout_lines | length > 0 and count.stdout | int == 1 # migration success
-
-    - name: logging - write the workload state
-      shell: |
-        echo migration success : false >> /home/ubuntu/migration_test/dump/timestamp.log
-      when: PID.stdout_lines | length <= 0 or count.stdout | int != 1 # migration fail
+        python3 /home/ubuntu/migration_test/logging_workload_state.py
 
     - name: Log to JSON
       shell: |
-        python3 /home/ubuntu/migration_test/log_to_json.py > /home/ubuntu/migration_test/"$(sed -n '1p' /home/ubuntu/migration_test/dump/performance.log)_to_$(sed -n '2p' /home/ubuntu/migration_test/dump/performance.log).json"
+        python3 /home/ubuntu/migration_test/log_to_json.py > /home/ubuntu/migration_test/"$(sed -n '1p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '2p' /home/ubuntu/migration_test/performance.log).json"
 
     - name: Upload to S3
       shell: |
