@@ -9,10 +9,9 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-GROUP_NUMBER = 22
+GROUP_NUMBER = 18
 
 start_time = datetime.datetime.now()
-
 # create infrastructure by group 
 with open(f'terraform.log', 'w') as f: # Created separately for reuse of some resources, such as VPCs
     p = subprocess.Popen(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances'], cwd='infrastructure/Scenario1', stdout=f, stderr=f, encoding='utf-8')
@@ -65,7 +64,8 @@ subprocess.run('rm -f group*.log', shell=True)
 
 # Execute an Ansible command to start the container migration test.
 def worker(group_num):
-    playbook.scenario1(str(group_num))
+    # playbook.scenario1(str(group_num))
+    playbook.scenario1(str(3))
 
 threads = []
 for i in range(GROUP_NUMBER):

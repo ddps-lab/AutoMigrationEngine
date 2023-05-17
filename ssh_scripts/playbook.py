@@ -108,4 +108,4 @@ def scenario2(src, dst):
 
     end_time = time.time()
     total_time = end_time - start_time
-    print("total execution time: {:.2f}".format(total_time))
+    print("group{group_number} total execution time: {:.2f}".format(total_time))
