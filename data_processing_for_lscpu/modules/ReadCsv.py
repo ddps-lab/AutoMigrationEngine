@@ -24,7 +24,7 @@ def read_csv(CPU_FEATURES):
         df = df.drop(df[df['InstanceType'] == instance].index)
 
     # Remove high-cost instances
-    highCostInstances = ['u-3tb1.56xlarge', 'u-6tb1.56xlarge', 'u-6tb1.112xlarge', 'u-9tb1.112xlarge', 'u-12tb1.112xlarge', 'x2iedn.metal']
+    highCostInstances = ['u-3tb1.56xlarge', 'u-6tb1.56xlarge', 'u-6tb1.112xlarge', 'u-9tb1.112xlarge', 'u-12tb1.112xlarge']
     for instance in highCostInstances:
         df = df.drop(df[df['InstanceType'] == instance].index)
 
