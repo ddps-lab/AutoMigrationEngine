@@ -1,7 +1,7 @@
 resource "aws_instance" "ec2" {
   count = length(var.instance_group)
   instance_type = var.instance_group[count.index]
-  ami = var.ami_id # migration compatibility test on x86
+  ami = var.ami_id
   key_name = var.key_name
   availability_zone = var.availability_zone
   subnet_id = var.public_subnet_id
@@ -11,7 +11,7 @@ resource "aws_instance" "ec2" {
   ]
 
   tags = {
-    "Name" = "container-migration-test_${var.instance_group[count.index]}"
+    "Name" = "migration-test_${var.instance_group[count.index]}"
   }
 
   user_data = <<-EOF
