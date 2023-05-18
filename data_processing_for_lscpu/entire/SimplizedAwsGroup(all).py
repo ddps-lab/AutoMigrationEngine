@@ -29,7 +29,7 @@ unduplicate = []
 for group in groups:
     # extract to instance type ex) m5.large -> m5
     for instance in group:
-        # 최대 48xlarge까지만 간소화 대상으로 포함함.
+        # 최대 48xlarge까지만 간소화 대상으로 포함.
         if instance[instance.index('.') + 1:] in sizelist:
             typelist.append(instance[:instance.index('.')])
 
@@ -63,7 +63,6 @@ for group in groups:
 simplized_group = []
 
 # Simplify instance types by processor type
-# x2idn, x2iedn 모두 들어감. t3ad t3aed 이런거도 다 들어갈듯
 for group in newgroups:
     tempgroup = []
     for instance in group:
@@ -111,15 +110,30 @@ for group in newgroups:
                     tempgroup.append(instance)
         else:
             pattern = '^' + instance[:2] + '.'
-            result = [instance for instance in tempgroup if re.match(pattern, instance)]
+            result = ''.join([instance for instance in tempgroup if re.match(pattern, instance)])
             if(len(result) == 0):
                 tempgroup.append(instance)
-    simplized_group.append(tempgroup)
+            else:
+                type1 = instance[:instance.index('.')]
+                type2 = result[:result.index('.')]
+                size1 = instance[instance.index('.') + 1:]
+                size2 = result[result.index('.') + 1:]
 
+                # tempgroup에 있는 인스턴스 보다 사이즈가 작은 경우 해당 인스턴스 선택
+                # r5dn.large, r5n.2xlarge가 있다면 r5dn.large 선택
+                if sizelist.index(size1) < sizelist.index(size2):
+                    tempgroup[tempgroup.index(result)] = instance
+                # tempgroup에 있는 인스턴스와 사이즈가 같은 경우 타입의 길이가 짧은 타입 선택
+                # r5dn.large, r5n.large가 있다면 r5n.large 선택
+                elif sizelist.index(size1) == sizelist.index(size2):
+                    if len(type1) < len(type2):
+                        tempgroup[tempgroup.index(result)] = instance
+    simplized_group.append(tempgroup)
+    
 df = GspreadUtils.read_gspread('groupby aws(all)')
 
 # 단일 인스턴스만 남은 그룹 제거
-if(True):
+if(False):
     final_experiment_set = []
     deleted_index = []
     # Remove a group with 1 instance
@@ -139,6 +153,8 @@ if(True):
     df.drop('index', axis=1, inplace=True)
     for i in range(len(final_experiment_set)):
         df.at[i, 'feature groups'] = ', '.join(final_experiment_set[i])
+    
+    GspreadUtils.write_gspread('simplized aws group(all, exclude single-element groups)', df)
 else:
     for i in reversed(range(len(simplized_group))):
         if len(simplized_group[i]) < 1:
@@ -146,4 +162,4 @@ else:
             continue
         df.at[i, 'feature groups'] = ', '.join(simplized_group[i])
 
-GspreadUtils.write_gspread('simplized aws group(all, exclude single-element groups)', df)
+    GspreadUtils.write_gspread('simplized aws group(all)', df)
