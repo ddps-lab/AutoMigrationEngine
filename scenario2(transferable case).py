@@ -31,8 +31,8 @@ for i in range(len(TransferableGroups)):
 
     # create infrastructure by group
     with open(f'terraform.log', 'w') as f:
-        subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.shuffle_instances',
-                        '-var', f'group={TransferableGroups[i]}'], cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
+        subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances',],
+                       cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
         subprocess.run(['terraform', 'apply', '-auto-approve', '-var', f'group={TransferableGroups[i]}'],
                        cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
 
