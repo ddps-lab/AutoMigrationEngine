@@ -4,6 +4,7 @@ infrastructure/*/.terraform.*
 terraform.log
 
 ssh_scripts/inventory*
+ansible.log
 
 *DS_Store*
 
