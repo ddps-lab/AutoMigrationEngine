@@ -10,12 +10,12 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-GROUP_NUMBER = 4
+GROUP_NUMBER = 31
 CREATE_GRPUP = [i for i in range(GROUP_NUMBER)]
 
 start_time = datetime.datetime.now()
 # create infrastructure by group
-with open(f'terraform.log', 'w') as f:  # Created separately for reuse of some resources, such as VPCs
+with open(f'terraform.log', 'w') as f:
     subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances', '-var',
                    f'group={CREATE_GRPUP}'], cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
     subprocess.run(['terraform', 'apply', '-auto-approve', '-var', f'group={CREATE_GRPUP}'],
@@ -67,15 +67,13 @@ print('Pass all instance health checks')
 subprocess.run('rm -f ansible.log', shell=True)
 
 # Execute an Ansible command to start the migration test.
-# for i in range(GROUP_NUMBER):
-#     dst = [i for i in range(GROUP_NUMBER)]
-#     dst.remove(i)
-#     playbook.scenario2(i, dst)
-for i in tqdm(range(GROUP_NUMBER), desc='Processing'):
-    dst = [j for j in range(GROUP_NUMBER) if j != i]
-    playbook.scenario2(i, dst)
+with tqdm(total=GROUP_NUMBER, unit='Processing') as pbar:
+    for i in range(GROUP_NUMBER):
+        dst = [j for j in range(GROUP_NUMBER) if j != i]
+        playbook.scenario2(i, dst)
+        pbar.update(1)
     
-# destroy infrastructure by group
+# destroy infrastructure by groups
 with open(f'terraform.log', 'a') as f:
     p = subprocess.Popen(['terraform', 'destroy', '-auto-approve', '-var',
                          f'group={CREATE_GRPUP}'], cwd='infrastructure/Scenario2', stdout=f, stderr=f)

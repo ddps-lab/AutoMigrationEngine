@@ -10,6 +10,10 @@
         sudo kill -9 $(pgrep -f matrix_mul.py)
       ignore_errors: yes
 
+    - name: Increase PID
+      shell: |
+        python3 /home/ubuntu/migration_test/increase_pid.py > /dev/null
+
     - name: Start workload
       shell: nohup python3 /home/ubuntu/migration_test/matrix_mul.py 1>/dev/null 2>&1 &
 
@@ -84,7 +88,7 @@
         timeout: 5
       register: result
 
-    - name: logging - write the workload state(true)
+    - name: logging - write the workload state
       shell: |
         python3 /home/ubuntu/migration_test/logging_workload_state.py
 

@@ -89,7 +89,6 @@ def scenario2(src, dst):
         }
     }
 
-    start_time = time.time()
     for i in range(len(sources)):
         # Run playbook with current inventory
 
@@ -105,7 +104,3 @@ def scenario2(src, dst):
                            "-i", "ssh_scripts/inventory.json"], stdout=f, stderr=f)
 
         time.sleep(5)
-
-    end_time = time.time()
-    total_time = end_time - start_time
-    print("total execution time: {:.2f}".format(total_time))
