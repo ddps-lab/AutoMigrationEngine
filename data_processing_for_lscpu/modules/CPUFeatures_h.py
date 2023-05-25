@@ -42,40 +42,9 @@ def all_flags():
     
     return CPU_FEATURES
 
-def all_flags_simplification():
-    '''
-    Exclude features that exist or do not exist in all instances type
-    '''
-    # Intel
-    CPUID_1_EDX = ['pse36', 'ss']
-    CPUID_1_ECX = ['pclmulqdq', 'monitor', 'vmx', 'est', 'fma', 'pcid', 'x2apic', 'movbe', 'tsc_deadline_timer', 'aes', 'xsave', 'avx', 'f16c', 'rdrand', ]
-    CPUID_7_0_EBX = ['fsgsbase', 'tsc_adjust', 'bmi1', 'hle', 'avx2', 'smep', 'bmi2', 'erms', 'invpcid', 'rtm', 'mpx', 'avx512f', 'avx512dq', 'rdseed', 'adx', 'smap', 'avx512ifma', 'clflushopt', 'clwb', 'avx512cd', 'sha_ni', 'avx512bw', 'avx512vl']
-    CPUID_7_0_ECX = ['avx512vbmi', 'umip', 'pku', 'ospke', 'avx512_vbmi2', 'gfni', 'vaes', 'vpclmulqdq', 'avx512_vnni', 'avx512_bitalg', 'tme', 'avx512_vpopcntdq', 'rdpid']
-    CPUID_7_0_EDX = ['md_clear', 'flush_l1d', 'arch_capabilities', ]
-
-    # AMD
-    CPUID_8000_0001_EDX = ['mmxext', 'fxsr_opt', 'pdpe1gb', 'rdtscp']
-    CPUID_8000_0001_ECX = ['cmp_legacy', 'svm', 'cr8_legacy', 'abm', 'sse4a', 'misalignsse', '3dnowprefetch', 'topoext', 'perfctr_core']
-    CPUID_8000_0008_EBX = ['clzero', 'xsaveerptr', 'rdpru', 'wbnoinvd']
-    # CPUID_8000_000a_EDX : AMD SVM(Secure Virtual Machine) features, 하드웨어 기반 가상화를 지원하는 기술
-    CPUID_8000_000a_EDX = ['npt', 'nrip_save','tsc_scale', 'vmcb_clean', 'flushbyasid', 'decodeassists', 'pausefilter', 'pfthreshold', 'v_vmsave_vmload']
-
-    # Linux
-    CPUID_LNX_Other = ['constant_tsc', 'arch_perfmon', 'xtopology', 'tsc_reliable', 'nonstop_tsc', 'amd_dcm', 'aperfmperf', 'tsc_known_freq']
-    CPUID_LNX_Auxiliary = ['cpuid_fault', 'invpcid_single', 'pti', 'ssbd', 'ibrs', 'ibpb', 'stibp', 'ibrs_enhanced', ]
-    CPUID_LNX_Virtualization = ['tpr_shadow', 'vnmi', 'ept', 'vpid', 'vmmcall', 'ept_ad']
-
-    # Extended state features
-    CPUID_D_1_EAX = ['xsaveopt', 'xsavec', 'xgetbv1', 'xsaves']
-
-    # All
-    CPU_FEATURES = CPUID_1_EDX + CPUID_1_ECX + CPUID_7_0_EBX + CPUID_7_0_ECX + CPUID_7_0_EDX + CPUID_8000_0001_EDX + CPUID_8000_0001_ECX + CPUID_8000_0008_EBX + CPUID_8000_000a_EDX + CPUID_LNX_Other + CPUID_LNX_Auxiliary + CPUID_LNX_Virtualization + CPUID_D_1_EAX
-    
-    return CPU_FEATURES
-
 def all_CPU_features_simplification_by_lscpu():
     '''
-    lscpu에서 현재 지원하지 않는 인스턴스를 제외하고 정리한 데이터셋에서 AWS, GCP, Azure 모든 인스턴스에 존재하거나 존재하지 않는 flags 제거
+    "lscpu_all_vendors.csv" 에서 현재 지원되지 않는 인스턴스를 제외하고 AWS, GCP, Azure 모든 인스턴스에 존재하거나 존재하지 않는 flags 제거
     '''
     # Intel
     CPUID_1_EDX = ['ss']
@@ -126,28 +95,6 @@ def core_CPU_features_of_CRIU():
     # All
     CPU_FEATURES = CPUID_1_EDX + CPUID_1_ECX + CPUID_7_0_EBX + CPUID_7_0_ECX + CPUID_7_0_EDX + CPUID_8000_0001_EDX + CPUID_8000_0001_ECX + CPUID_8000_0008_EBX + CPUID_LNX_Other + CPUID_D_1_EAX
 
-    return CPU_FEATURES
-
-def core_CPU_features_of_CRIU_simplification():
-    '''
-    Exclude features that exist or do not exist in all instances type
-    '''
-    # Intel
-    CPUID_1_ECX = ['pclmulqdq', 'monitor', 'movbe', 'aes', 'xsave', 'avx', 'f16c', 'rdrand']
-    CPUID_7_0_EBX = ['fsgsbase', 'bmi1', 'hle', 'avx2', 'bmi2', 'erms', 'rtm', 'mpx', 'avx512f', 'avx512dq', 'rdseed', 'adx', 'clflushopt', 'avx512cd', 'sha_ni', 'avx512bw', 'avx512vl']
-    CPUID_7_0_ECX = ['avx512vbmi', 'avx512_vbmi2', 'gfni', 'vaes', 'vpclmulqdq', 'avx512_vnni', 'avx512_bitalg', 'tme', 'avx512_vpopcntdq', 'rdpid']
-
-    # AMD
-    CPUID_8000_0001_EDX = ['mmxext', 'rdtscp']
-    CPUID_8000_0001_ECX = ['abm', 'sse4a', 'misalignsse', '3dnowprefetch']
-    CPUID_8000_0008_EBX = ['clzero']
-
-    # Extended state features
-    CPUID_D_1_EAX = ['xsaveopt', 'xsavec', 'xgetbv1']
-
-    # All
-    CPU_FEATURES = CPUID_1_ECX + CPUID_7_0_EBX + CPUID_7_0_ECX + CPUID_8000_0001_EDX + CPUID_8000_0001_ECX + CPUID_8000_0008_EBX + CPUID_D_1_EAX
-    
     return CPU_FEATURES
 
 def core_CPU_features_simplification_by_lscpu():
