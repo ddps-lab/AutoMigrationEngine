@@ -56,17 +56,12 @@ def scenario1(group_number):
     total_time = end_time - start_time
     print(f"group{group_number} total execution time: {total_time}")
 
-
-def scenario2(src, dst):
-    with open("ssh_scripts/inventory_" + str(src) + ".txt") as f:
-        sources = f.readlines()
-    sources = [src.strip() for src in sources]
-
-    destinations = []
-    for i in range(len(dst)):
-        with open("ssh_scripts/inventory_" + str(dst[i]) + ".txt") as f:
-            dst_group = f.readlines()
-        destinations += [dst.strip() for dst in dst_group]
+def scenario2_dump(GROUP_NUMBER):
+    sources = []
+    for i in range(GROUP_NUMBER):
+        with open("ssh_scripts/inventory_" + str(i) + ".txt") as f:
+            source = f.readlines()
+        sources += [src.strip() for src in source]
 
     inventory = {
         "all": {
@@ -74,33 +69,46 @@ def scenario2(src, dst):
                 "ansible_user": "ubuntu",
                 "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
             },
-            "hosts": {},
+            "hosts": {src: None for src in sources}
         },
-
-        "src": {
-            "hosts": {
-                sources[0]: None
-            }
-        },
-        "dst": {
-            "hosts": {
-                dst: None for dst in destinations
-            }
-        }
     }
 
-    for i in range(len(sources)):
-        # Run playbook with current inventory
+    # Update dynamic inventory file
+    with open("ssh_scripts/inventory.json", "w") as f:
+        json.dump(inventory, f)
 
-        # Swap src
-        inventory["src"]["hosts"] = sources[i]
-
-        # Update dynamic inventory file
-        with open("ssh_scripts/inventory.json", "w") as f:
-            json.dump(inventory, f)
-
-        with open(f'ansible.log', 'a') as f:
-            subprocess.run(["ansible-playbook", "ssh_scripts/without-container.yml",
+    with open(f'ansible.log', 'w') as f:
+            subprocess.run(["ansible-playbook", "ssh_scripts/process-dump.yml",
                            "-i", "ssh_scripts/inventory.json"], stdout=f, stderr=f)
 
-        time.sleep(5)
+
+def scenario2_restore(GROUP_NUMBER, src):
+    destinations = []
+    for i in range(GROUP_NUMBER):
+        # 본인을 제외한 모든 그룹의 프로세스를 복원
+        if i == src:
+            continue
+
+        with open("ssh_scripts/inventory_" + str(i) + ".txt") as f:
+            destination = f.readlines()
+        destinations += [dst.strip() for dst in destination]
+
+    inventory = {
+        "all": {
+            "vars": {
+                "ansible_user": "ubuntu",
+                "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
+            },
+            "hosts": {dst: None for dst in destinations}
+        },
+    }
+
+    # Update dynamic inventory file
+    with open("ssh_scripts/inventory.json", "w") as f:
+        json.dump(inventory, f)
+
+    with open(f'ansible.log', 'a') as f:
+        subprocess.run(["ansible-playbook", "ssh_scripts/process-restore.yml",
+                        "-i", "ssh_scripts/inventory.json", "-e", f"src={src}"], stdout=f, stderr=f)
+
+    time.sleep(5)

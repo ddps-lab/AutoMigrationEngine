@@ -1,0 +1,49 @@
+---
+- name : Migration compatibility check - dst
+  hosts: all
+  tasks:
+    - name: Initialize destination instance
+      shell: |
+        sudo rm -rf /home/ubuntu/migration_test/*.csv
+        sudo rm -rf /home/ubuntu/migration_test/*.log
+        sudo kill -9 $(pgrep -f matrix_mul.py)
+      ignore_errors: yes
+
+    - name: Copy the log from the dump directory
+      shell: |
+        cp /home/ubuntu/migration_test/dump/{{ src }}/*.log /home/ubuntu/migration_test
+
+    - name: logging - write the dst instance type
+      shell: |
+        INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type) && \
+        sed -i "2i dst : $INSTANCE_TYPE" /home/ubuntu/migration_test/performance.log
+
+    - name: logging - write the restore start time
+      shell: |
+        echo start restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
+
+    - name: Restore workload
+      shell: |
+        sudo nohup criu restore -j -v4 --display-stats -D /home/ubuntu/migration_test/dump/{{ src }} >> /home/ubuntu/migration_test/performance.log \
+        2> /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log)-restore.log" &
+
+    - name: logging - write the restore end time
+      shell: |
+        echo end restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
+
+    - name: logging - write the workload state
+      shell: |
+        python3 /home/ubuntu/migration_test/logging_workload_state.py
+
+    - name: Log to CSV
+      shell: |
+        python3 /home/ubuntu/migration_test/log_to_csv.py 
+        mv /home/ubuntu/migration_test/migration_data.csv /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log).csv"
+
+    - name: Upload to S3 - test result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*.csv s3://migration-compatibility/Migration-between-groups/
+
+    - name: Upload to S3 - restore detail log
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*-restore.log s3://migration-compatibility-detail

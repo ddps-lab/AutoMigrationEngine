@@ -66,11 +66,13 @@ print('Pass all instance health checks')
 
 subprocess.run('rm -f ansible.log', shell=True)
 
+playbook.scenario2_dump(GROUP_NUMBER)
+
 # Execute an Ansible command to start the migration test.
 with tqdm(total=GROUP_NUMBER, unit='Processing') as pbar:
     for i in range(GROUP_NUMBER):
         dst = [j for j in range(GROUP_NUMBER) if j != i]
-        playbook.scenario2(i, dst)
+        playbook.scenario2_restore(GROUP_NUMBER, i)
         pbar.update(1)
     
 # destroy infrastructure by groups

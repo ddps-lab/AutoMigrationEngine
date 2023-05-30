@@ -81,7 +81,7 @@ for i in range(len(TransferableGroups)):
 
     for _ in range(len(TransferableGroups[i])):
         # Execute an Ansible command to start the container migration test.
-        playbook.scenario2(TransferableGroups[i][0], TransferableGroups[i][1:])
+        playbook.scenario2_restore(TransferableGroups[i][0], TransferableGroups[i][1:])
 
         temp = TransferableGroups[i].pop()
         TransferableGroups[i].insert(i, temp)
