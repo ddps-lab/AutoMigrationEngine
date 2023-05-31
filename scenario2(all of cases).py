@@ -64,9 +64,12 @@ while True:
 
 print('Pass all instance health checks')
 
-subprocess.run('rm -f ansible.log', shell=True)
-
 playbook.scenario2_dump(GROUP_NUMBER)
+
+dump_time = datetime.datetime.now()
+elapsed_time = dump_time - start_time
+total_seconds = elapsed_time.total_seconds()
+print(f'total time : {total_seconds}')
 
 # Execute an Ansible command to start the migration test.
 with tqdm(total=GROUP_NUMBER, unit='Processing') as pbar:

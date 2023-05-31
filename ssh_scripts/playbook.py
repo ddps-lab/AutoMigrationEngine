@@ -79,7 +79,7 @@ def scenario2_dump(GROUP_NUMBER):
 
     with open(f'ansible.log', 'w') as f:
             subprocess.run(["ansible-playbook", "ssh_scripts/process-dump.yml",
-                           "-i", "ssh_scripts/inventory.json"], stdout=f, stderr=f)
+                           "-i", "ssh_scripts/inventory.json", "--forks", f"{GROUP_NUMBER}"], stdout=f, stderr=f)
 
 
 def scenario2_restore(GROUP_NUMBER, src):
@@ -109,6 +109,6 @@ def scenario2_restore(GROUP_NUMBER, src):
 
     with open(f'ansible.log', 'a') as f:
         subprocess.run(["ansible-playbook", "ssh_scripts/process-restore.yml",
-                        "-i", "ssh_scripts/inventory.json", "-e", f"src={src}"], stdout=f, stderr=f)
+                        "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{GROUP_NUMBER}"], stdout=f, stderr=f)
 
     time.sleep(5)

@@ -1,6 +1,7 @@
 ---
 - name : Migration compatibility check - dst
   hosts: all
+  gather_facts: no
   tasks:
     - name: Initialize destination instance
       shell: |
