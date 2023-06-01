@@ -64,6 +64,7 @@ while True:
 
 print('Pass all instance health checks')
 
+# Execute an Ansible command to start the checkpoint.
 playbook.scenario2_dump(GROUP_NUMBER)
 
 dump_time = datetime.datetime.now()
@@ -71,7 +72,7 @@ elapsed_time = dump_time - start_time
 total_seconds = elapsed_time.total_seconds()
 print(f'total time : {total_seconds}')
 
-# Execute an Ansible command to start the migration test.
+# Execute an Ansible command to start the restore.
 with tqdm(total=GROUP_NUMBER, unit='Processing') as pbar:
     for i in range(GROUP_NUMBER):
         dst = [j for j in range(GROUP_NUMBER) if j != i]
