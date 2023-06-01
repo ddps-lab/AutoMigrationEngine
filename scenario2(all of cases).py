@@ -10,8 +10,7 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-GROUP_NUMBER = 31
-CREATE_GRPUP = [i for i in range(GROUP_NUMBER)]
+CREATE_GRPUP = [i for i in range(31)]
 
 start_time = datetime.datetime.now()
 # create infrastructure by group
@@ -65,7 +64,7 @@ while True:
 print('Pass all instance health checks')
 
 # Execute an Ansible command to start the checkpoint.
-playbook.scenario2_dump(GROUP_NUMBER)
+playbook.scenario2_dump(CREATE_GRPUP)
 
 dump_time = datetime.datetime.now()
 elapsed_time = dump_time - start_time
@@ -73,10 +72,9 @@ total_seconds = elapsed_time.total_seconds()
 print(f'total time : {total_seconds}')
 
 # Execute an Ansible command to start the restore.
-with tqdm(total=GROUP_NUMBER, unit='Processing') as pbar:
-    for i in range(GROUP_NUMBER):
-        dst = [j for j in range(GROUP_NUMBER) if j != i]
-        playbook.scenario2_restore(GROUP_NUMBER, i)
+with tqdm(total=len(CREATE_GRPUP), unit='Processing') as pbar:
+    for i in CREATE_GRPUP:
+        playbook.scenario2_restore(CREATE_GRPUP, CREATE_GRPUP[i])
         pbar.update(1)
     
 # destroy infrastructure by groups

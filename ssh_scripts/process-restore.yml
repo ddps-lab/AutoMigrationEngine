@@ -25,10 +25,10 @@
         export PATH=$PATH:~/criu/crit/
         crit show /home/ubuntu/migration_test/dump/{{ src }}/pstree.img | jq '.entries[0].pid'
 
-    - name: logging - process tree
+    - name: logging - process ids
       shell: |
-        ps -eLf | awk '$2 >= {{ PID.stdout_lines[0] }} { if ($4 != "LWP") print $4 }' > /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log)-restore.log"
-        
+        ps -eLf | awk '$2 >= {{ PID.stdout_lines[0] }} { if ($4 != "LWP") print $4 }' > /home/ubuntu/migration_test/dst-pids.log
+
     - name: logging - write the restore start time
       shell: |
         echo start restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
@@ -51,9 +51,9 @@
         python3 /home/ubuntu/migration_test/log_to_csv.py 
         mv /home/ubuntu/migration_test/migration_data.csv /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log).csv"
 
-    # - name: Upload to S3 - test result
-    #   shell: |
-    #     aws s3 cp /home/ubuntu/migration_test/*.csv s3://migration-compatibility/Migration-between-groups/
+    - name: Upload to S3 - test result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*.csv s3://migration-compatibility/Migration-between-groups/
 
     - name: Upload to S3 - restore detail log
       shell: |

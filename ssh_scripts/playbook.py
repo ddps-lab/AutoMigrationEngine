@@ -56,10 +56,10 @@ def scenario1(group_number):
     total_time = end_time - start_time
     print(f"group{group_number} total execution time: {total_time}")
 
-def scenario2_dump(GROUP_NUMBER):
+def scenario2_dump(groups):
     sources = []
-    for i in range(GROUP_NUMBER):
-        with open("ssh_scripts/inventory_" + str(i) + ".txt") as f:
+    for i in range(len(groups)):
+        with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
             source = f.readlines()
         sources += [src.strip() for src in source]
 
@@ -79,14 +79,14 @@ def scenario2_dump(GROUP_NUMBER):
 
     with open(f'ansible.log', 'w') as f:
             subprocess.run(["ansible-playbook", "ssh_scripts/process-dump.yml",
-                           "-i", "ssh_scripts/inventory.json", "--forks", f"{GROUP_NUMBER}"], stdout=f, stderr=f)
+                           "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
 
 
-def scenario2_restore(GROUP_NUMBER, src):
+def scenario2_restore(groups, src):
     destinations = []
-    for i in range(GROUP_NUMBER):
+    for i in range(len(groups)):
         # 본인을 제외한 모든 그룹의 프로세스를 복원
-        if i == src:
+        if groups[i] == src:
             continue
 
         with open("ssh_scripts/inventory_" + str(i) + ".txt") as f:
@@ -109,6 +109,6 @@ def scenario2_restore(GROUP_NUMBER, src):
 
     with open(f'ansible.log', 'a') as f:
         subprocess.run(["ansible-playbook", "ssh_scripts/process-restore.yml",
-                        "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{GROUP_NUMBER}"], stdout=f, stderr=f)
+                        "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
 
     time.sleep(5)

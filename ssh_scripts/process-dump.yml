@@ -34,6 +34,10 @@
     - name: Get workload PID
       shell: pgrep -f matrix_mul.py
       register: PID
+
+    - name: logging - process ids
+      shell: |
+        ps -eLf | awk '$2 == {{ PID.stdout_lines[0] }} { print $4 }' > /home/ubuntu/migration_test/dump/{{ index }}/src-pids.log
     
     - name: Checkpoint workload
       shell: |
@@ -43,11 +47,6 @@
     - name: logging - write the checkpoint end time
       shell: |
         echo end checkpoint : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/dump/{{ index }}/timestamp.log
-    
-    - name: logging - process tree
-      shell: |
-        export PATH=$PATH:~/criu/crit/
-        crit show /home/ubuntu/migration_test/dump/{{ index }}/pstree.img >> /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/dump/{{ index }}/performance.log)-dump.log"
 
     - name: Move the workload log to the dump directory
       shell: |
