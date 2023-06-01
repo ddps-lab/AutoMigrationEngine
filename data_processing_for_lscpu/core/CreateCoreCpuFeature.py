@@ -32,7 +32,7 @@ df.reset_index(drop=True, inplace=True)
 tempColumn = df.pop('Flags')
 df.insert(len(df.columns), 'Flags', tempColumn)
 
-GspreadUtils.write_gspread('core features', df)
+GspreadUtils.write_CPU_Feature_Visualization('core features', df)
 
 # Extract features that exist or do not exist on all instances
 zero_cols = df.columns[df.eq(0).all(axis=0)].tolist()

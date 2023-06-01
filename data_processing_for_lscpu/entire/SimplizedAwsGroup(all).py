@@ -8,7 +8,7 @@ sys.path.append(str(Path(__file__).resolve().parent.joinpath('..', 'modules')))
 
 import GspreadUtils
 
-df = GspreadUtils.read_gspread('groupby aws(all)')
+df = GspreadUtils.read_CPU_Feature_Visualization('groupby aws(all)')
 df = df['feature groups']
 
 # df to list
@@ -130,7 +130,7 @@ for group in newgroups:
                         tempgroup[tempgroup.index(result)] = instance
     simplized_group.append(tempgroup)
     
-df = GspreadUtils.read_gspread('groupby aws(all)')
+df = GspreadUtils.read_CPU_Feature_Visualization('groupby aws(all)')
 
 # 단일 인스턴스만 남은 그룹 제거
 if(False):
@@ -154,7 +154,7 @@ if(False):
     for i in range(len(final_experiment_set)):
         df.at[i, 'feature groups'] = ', '.join(final_experiment_set[i])
     
-    GspreadUtils.write_gspread('simplized aws group(all, exclude single-element groups)', df)
+    GspreadUtils.write_CPU_Feature_Visualization('simplized aws group(all, exclude single-element groups)', df)
 else:
     for i in reversed(range(len(simplized_group))):
         if len(simplized_group[i]) < 1:
@@ -162,4 +162,4 @@ else:
             continue
         df.at[i, 'feature groups'] = ', '.join(simplized_group[i])
 
-    GspreadUtils.write_gspread('simplized aws group(all)', df)
+    GspreadUtils.write_CPU_Feature_Visualization('simplized aws group(all)', df)

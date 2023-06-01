@@ -8,7 +8,7 @@ sys.path.append(str(Path(__file__).resolve().parent.joinpath('..', 'modules')))
 
 import GspreadUtils
 
-df = GspreadUtils.read_gspread('groupby aws(core)')
+df = GspreadUtils.read_CPU_Feature_Visualization('groupby aws(core)')
 df = df['feature groups']
 
 # df to list
@@ -101,7 +101,7 @@ for group in final_experiment_set:
 
 print(f'deleted_index : {deleted_index}')
 
-df = GspreadUtils.read_gspread('groupby aws(core)')
+df = GspreadUtils.read_CPU_Feature_Visualization('groupby aws(core)')
 
 # Update with a simplified dataset.
 for index in sorted(deleted_index, reverse = True):
@@ -112,4 +112,4 @@ df.drop('index', axis=1, inplace=True)
 for i in range(len(final_experiment_set)):
     df.at[i, 'feature groups'] = ', '.join(final_experiment_set[i])
 
-GspreadUtils.write_gspread('simplized aws group(core)', df)
+GspreadUtils.write_CPU_Feature_Visualization('simplized aws group(core)', df)

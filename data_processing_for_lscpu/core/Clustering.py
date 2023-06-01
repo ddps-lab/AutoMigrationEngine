@@ -12,7 +12,7 @@ sys.path.append(str(Path(__file__).resolve().parent.joinpath('..', 'modules')))
 
 import GspreadUtils
 
-df = GspreadUtils.read_gspread('feature groups(core)')
+df = GspreadUtils.read_CPU_Feature_Visualization('feature groups(core)')
 
 df = df.drop('feature groups', axis=1)
 

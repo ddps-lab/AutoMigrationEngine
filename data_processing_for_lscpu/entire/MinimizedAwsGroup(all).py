@@ -8,7 +8,7 @@ sys.path.append(str(Path(__file__).resolve().parent.joinpath('..', 'modules')))
 
 import GspreadUtils
 
-df = GspreadUtils.read_gspread('simplized aws group(all)')
+df = GspreadUtils.read_CPU_Feature_Visualization('simplized aws group(all)')
 df = df['feature groups']
 
 # df to list
@@ -17,7 +17,7 @@ groups = []
 for i in range(len(df)):
     groups.append(df.iloc[i].split(', '))
 
-prices = GspreadUtils.read_gspread('ec2 price(us-west-2, 23.05.24)')
+prices = GspreadUtils.read_CPU_Feature_Visualization('ec2 price(us-west-2, 23.05.24)')
 prices = prices[['Instance', 'Linux On Demand cost']]
 
 newGroups = []
@@ -40,6 +40,6 @@ for group in groups:
 print(f"totalPrice : {totalPrice} USD/hour")
 
 # update gspread
-df = GspreadUtils.read_gspread('minimized aws group(all)')
+df = GspreadUtils.read_CPU_Feature_Visualization('minimized aws group(all)')
 df['feature groups'] = newGroups
-GspreadUtils.write_gspread('minimized aws group(all)', df)
+GspreadUtils.write_CPU_Feature_Visualization('minimized aws group(all)', df)

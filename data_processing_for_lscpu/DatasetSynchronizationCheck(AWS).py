@@ -46,7 +46,7 @@ print(f"Number of createable x86_64 instances : {len(createable_x86_64_instances
 print(f"Number of createable arm64 instances : {len(createable_arm64_instances)}")
 print(f"Number of unsupported instances : {len(unsupported_instances)}")
 
-df = GspreadUtils.read_gspread('groupby aws(all)')
+df = GspreadUtils.read_CPU_Feature_Visualization('groupby aws(all)')
 featureGroups = df['feature groups'].tolist()
 groups = []
 

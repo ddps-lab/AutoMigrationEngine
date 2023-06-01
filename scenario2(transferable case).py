@@ -3,6 +3,8 @@ import time
 import datetime
 import boto3
 
+from tqdm import tqdm
+
 import ssh_scripts.playbook as playbook
 
 ec2_client = boto3.client('ec2', region_name='us-west-2')
@@ -31,7 +33,7 @@ for i in range(len(TransferableGroups)):
 
     # create infrastructure by group
     with open(f'terraform.log', 'w') as f:
-        subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances',],
+        subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances', '-var', f'group={TransferableGroups[i]}'],
                        cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
         subprocess.run(['terraform', 'apply', '-auto-approve', '-var', f'group={TransferableGroups[i]}'],
                        cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
@@ -79,12 +81,14 @@ for i in range(len(TransferableGroups)):
 
     print('Pass all instance health checks')
 
-    for _ in range(len(TransferableGroups[i])):
-        # Execute an Ansible command to start the container migration test.
-        playbook.scenario2_restore(TransferableGroups[i][0], TransferableGroups[i][1:])
+    # Execute an Ansible command to start the checkpoint.
+    playbook.scenario2_dump(TransferableGroups[i])
 
-        temp = TransferableGroups[i].pop()
-        TransferableGroups[i].insert(i, temp)
+    # Execute an Ansible command to start the restore.
+    with tqdm(total=len(TransferableGroups[i]), unit=f'restore..{i}') as pbar:
+        for j in range(len(TransferableGroups[i])):
+            playbook.scenario2_restore(TransferableGroups[i], TransferableGroups[i][j])
+            pbar.update(1)
 
     # destroy infrastructure by group
     with open(f'terraform.log', 'a') as f:

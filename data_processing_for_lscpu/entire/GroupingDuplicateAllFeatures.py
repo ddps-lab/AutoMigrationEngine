@@ -13,7 +13,7 @@ import GspreadUtils
 
 CPU_FEATURES = CPUFeatures_h.all_CPU_features_simplification_by_lscpu()
 
-df = GspreadUtils.read_gspread('all features')
+df = GspreadUtils.read_CPU_Feature_Visualization('all features')
 
 # Extract instance types with the same CPU features
 columns = copy.deepcopy(CPU_FEATURES)
@@ -43,4 +43,4 @@ for flags, group in grouped:
 tempColumn = df_new.pop('Flags')
 df_new.insert(len(df_new.columns), 'Flags', tempColumn)
 
-GspreadUtils.write_gspread('feature groups(all)', df_new)
+GspreadUtils.write_CPU_Feature_Visualization('feature groups(all)', df_new)
