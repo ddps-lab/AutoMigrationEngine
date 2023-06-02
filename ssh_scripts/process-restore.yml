@@ -27,7 +27,17 @@
 
     - name: logging - process ids
       shell: |
-        ps -eLf | awk '$2 >= {{ PID.stdout_lines[0] }} { if ($4 != "LWP") print $4 }' > /home/ubuntu/migration_test/dst-pids.log
+        ps -eLf | awk '{ if ($4 != "LWP") print $4 }' > /home/ubuntu/migration_test/dst-pids.log
+
+    - name: Upload to S3 - PID logs
+      shell: |
+        src_file=$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)
+        dst_file=$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log)
+        echo "src" > "/home/ubuntu/migration_test/${src_file}_to_${dst_file}-pids.log"
+        cat /home/ubuntu/migration_test/src-pids.log >> "/home/ubuntu/migration_test/${src_file}_to_${dst_file}-pids.log"
+        echo "dst" >> "/home/ubuntu/migration_test/${src_file}_to_${dst_file}-pids.log"
+        cat /home/ubuntu/migration_test/dst-pids.log >> "/home/ubuntu/migration_test/${src_file}_to_${dst_file}-pids.log"
+        aws s3 cp "/home/ubuntu/migration_test/${src_file}_to_${dst_file}-pids.log" s3://migration-compatibility-detail
 
     - name: logging - write the restore start time
       shell: |

@@ -2,7 +2,6 @@ import subprocess
 import time
 import json
 
-
 def scenario1(group_number):
     with open("ssh_scripts/inventory_" + group_number + ".txt") as f:
         hosts = f.readlines()
@@ -82,14 +81,14 @@ def scenario2_dump(groups):
                            "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
 
 
-def scenario2_restore(groups, src):
+def scenario2_restore(groups, src, re_exp):
     destinations = []
     for i in range(len(groups)):
         # 본인을 제외한 모든 그룹의 프로세스를 복원
         if groups[i] == src:
             continue
 
-        with open("ssh_scripts/inventory_" + str(i) + ".txt") as f:
+        with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
             destination = f.readlines()
         destinations += [dst.strip() for dst in destination]
 
@@ -102,6 +101,9 @@ def scenario2_restore(groups, src):
             "hosts": {dst: None for dst in destinations}
         },
     }
+
+    if(re_exp):
+        src = 0
 
     # Update dynamic inventory file
     with open("ssh_scripts/inventory.json", "w") as f:

@@ -15,3 +15,5 @@ secure-outpost*
 .vscode/*
 
 __pycache__
+
+data_processing_for_lscpu/experiment_failure_cases/*

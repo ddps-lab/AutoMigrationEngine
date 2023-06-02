@@ -29,7 +29,7 @@ module "ec2" {
   count             = length(var.group)
   source            = "../modules/EC2-group"
   group_number      = var.group[count.index]
-  instance_group    = module.read-instances.instance_group[count.index]
+  instance_group    = module.read-instances.instance_group[var.group[count.index]]
   ami_id            = var.ami_id
   key_name          = var.key_name
   availability_zone = var.availability_zone

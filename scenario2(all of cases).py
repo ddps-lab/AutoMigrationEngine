@@ -74,7 +74,7 @@ print(f'total time : {total_seconds}')
 # Execute an Ansible command to start the restore.
 with tqdm(total=len(CREATE_GRPUP), unit='Processing') as pbar:
     for i in CREATE_GRPUP:
-        playbook.scenario2_restore(CREATE_GRPUP, CREATE_GRPUP[i])
+        playbook.scenario2_restore(CREATE_GRPUP, CREATE_GRPUP[i], False)
         pbar.update(1)
     
 # destroy infrastructure by groups
