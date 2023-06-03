@@ -19,7 +19,7 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-ExprimentGroups = CollectGroupNumbers.CollectGroupNumbersForInstances()
+ExprimentGroups = CollectGroupNumbers.CollectGroupNumbersForInstances("ExperimentFailureCases2.csv")
 total_count = sum(len(sub_lst) for sub_lst in ExprimentGroups)
 source_count = len(ExprimentGroups)
 print(f"There are {source_count} source instances and {total_count - source_count} migrations to be performed..")
@@ -38,11 +38,9 @@ with tqdm(total=len(ExprimentGroups), unit='Processing') as pbar:
             subprocess.run(['terraform', 'apply', '-auto-approve', '-var', f'group={ExprimentGroups[i]}'],
                         cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
 
-        print('\nComplete infrastructure creation')
-
+        time.sleep(60)
         # checking instance status
         while True:
-            print('checking instance status...')
             instances = ec2_client.describe_instances(Filters=[
                 {
                     'Name': 'tag:Name',
@@ -60,14 +58,11 @@ with tqdm(total=len(ExprimentGroups), unit='Processing') as pbar:
                     instance_state = instance_obj.state['Name']
 
                     if instance_state == 'terminated':
-                        print(f"Instance {instance_id} is terminated")
                         break
 
                     status = ec2_client.describe_instance_status(
                         InstanceIds=[instance_id])
                     if 'InstanceStatuses' not in status or status['InstanceStatuses'][0]['InstanceStatus']['Status'] != 'ok':
-                        print(
-                            f"Instance {instance_id} is not yet ready. Waiting 5 seconds...")
                         all_running = False
                         break
 
@@ -75,11 +70,8 @@ with tqdm(total=len(ExprimentGroups), unit='Processing') as pbar:
                     break
 
             if all_running:
-                print('All instances are running')
                 break
             time.sleep(10)
-
-        print('Pass all instance health checks')
 
         # Execute an Ansible command to start the checkpoint.
         playbook.scenario2_dump([ExprimentGroups[i][0]])
