@@ -7,16 +7,18 @@ sys.path.append(str(Path(__file__).resolve().parent.joinpath('modules')))
 import ReadCsv
 import GspreadUtils
 
-def CollectGroupNumbersForInstances(filename):
+def CollectGroupNumbersForInstances(filename, success):
     '''
     https://docs.google.com/spreadsheets/d/1NCqFbgMiD9h6qxwrruAia0_yYv3nWi0suU2h5kut8NA/edit#gid=886260129\n
     Returns the group number that maps to the instance based on the latest dataset.\n
-    Collected for re-experiment of failed instances in the CRIU restore phase.
     '''
     df = GspreadUtils.read_AWS_migration_compatibility("Group all features with the same instances")
     groups = df['feature groups'].to_list()
 
-    df = ReadCsv.read_exp_failure_cases(filename)
+    if success:
+        df = ReadCsv.read_exp_success_cases(filename)
+    else:
+        df = ReadCsv.read_exp_failure_cases(filename)
     df = df.sort_values(by='source')
 
     cases = []

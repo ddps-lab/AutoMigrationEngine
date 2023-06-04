@@ -17,3 +17,4 @@ secure-outpost*
 __pycache__
 
 data_processing_for_lscpu/experiment_failure_cases/*
+data_processing_for_lscpu/experiment_success_cases/*

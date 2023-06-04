@@ -30,11 +30,11 @@ def read_csv(CPU_FEATURES):
 
     return df
 
-def read_exp_success_cases():
+def read_exp_success_cases(filename):
     '''
     The function will read the cases of success experiments. The corresponding CSV file was collected through AWS Athena.
     '''
-    df = pd.read_csv(f'{data_processing_for_lscpu_path}/experiment_success_cases/ExperimentSuccessCases.csv', usecols=['source', 'destination'])
+    df = pd.read_csv(f'{data_processing_for_lscpu_path}/experiment_success_cases/{filename}', usecols=['source', 'destination'])
 
     return df
 
