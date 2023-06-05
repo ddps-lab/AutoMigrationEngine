@@ -14,6 +14,11 @@
     - name: Create container
       shell: /home/ec2-user/podman/create_container.sh -t
 
+    - name: wait for 5 sec
+      wait_for:
+        timeout: 5
+      register: result
+
     - name: Execute workload
       shell: /home/ec2-user/podman/execute_workload_in_container.sh
 
@@ -58,6 +63,17 @@
     - name: Container restore
       shell: |
         /home/ec2-user/podman/restore.sh -n
+
+    - name: wait for 5 sec
+      wait_for:
+        timeout: 5
+      register: result
+
+    - name: Container knocking
+      shell: |
+        PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
+        curl http://$PUBLIC_IP:8888
+      ignore_errors: yes
     
     - name: logging - write the container state
       shell: |
@@ -92,6 +108,6 @@
         rm /home/ec2-user/podman/log/performance.log
         rm /home/ec2-user/podman/log/timestamp.log
 
-    # - name: Upload to S3
-    #   shell: |
-    #     aws s3 cp /home/ec2-user/podman/log/* s3://container-migration-log
+    - name: Upload to S3
+      shell: |
+        aws s3 cp /home/ec2-user/podman/log/* s3://container-migration-log

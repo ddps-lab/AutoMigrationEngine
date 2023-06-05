@@ -1,9 +1,9 @@
-terraform/.terraform
-terraform/*tfstate*
-terraform/.terraform*
-terraform/.terraform.*
+infrastructure/*/*.tfstate*
+infrastructure/*/.terraform
+infrastructure/*/.terraform.*
+terraform.log
 
-ansible/inventory*
+ssh_scripts/inventory*
 
 *DS_Store*
 
