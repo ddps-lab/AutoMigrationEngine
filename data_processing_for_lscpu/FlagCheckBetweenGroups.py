@@ -13,34 +13,12 @@ import CPUFeatures_h
 df = GspreadUtils.read_AWS_migration_compatibility('Group all features with the same instances')
 groups = df['feature groups'].to_list()
 
-# 양방향 마이그레이션에 성공한 케이스에서 일치하지 않는 flag 추출
-def bidirectionalMigration(bidirectionalMigrationSuccessList):
-    selected_columns_list = []
-    for i in range(len(bidirectionalMigrationSuccessList)):
-        groups = df.loc[bidirectionalMigrationSuccessList[i]]
-
-        # 특정 행(0,1,2)에서 값이 같지 않은 열을 탐색.
-        not_equal_columns = groups.loc[bidirectionalMigrationSuccessList[i]].nunique() != 1
-        # 값이 같지 않은 열을 선택.
-        different_columns = groups.loc[:, not_equal_columns]
-
-        columns = different_columns.columns.to_list()
-        columns.remove('feature groups')
-        selected_columns_list.append(columns)
-
-    flattened_list = [item for sublist in selected_columns_list for item in sublist]
-    # 중복 제거.
-    unique_items = set(flattened_list)
-    unique_list = list(unique_items)
-    return unique_list
-
-
-# 단방향 마이그레이션에 성공한 케이스에서 src에만 존재하는 flag 추출
+# 마이그레이션에 성공한 케이스에서 src에만 존재하는 flag 추출
 # dst list에서 한 번이라도 존재하지 않으면 해당 flag는 호환에 영향이 없는 것으로 간주함.
-def unidirectionalMigration(unidirectionalMigrationSuccessList):
+def allSuccessMigration(MigrationSuccessList):
     selected_columns_list = []
-    for i in range(len(unidirectionalMigrationSuccessList)):
-        groups = df.loc[unidirectionalMigrationSuccessList[i]]
+    for i in range(len(MigrationSuccessList)):
+        groups = df.loc[MigrationSuccessList[i]]
 
         selected_columns = groups.loc[:, (groups.iloc[0] == 1) & (groups.iloc[1:].isin([0]).any())]
         selected_columns_list.append(selected_columns.columns.tolist())
@@ -49,24 +27,18 @@ def unidirectionalMigration(unidirectionalMigrationSuccessList):
     # 중복 제거.
     unique_items = set(flattened_list)
     unique_list = list(unique_items)
+    unique_list.remove("rtm")
+    unique_list.remove("hle")
 
     return(unique_list)
 
-bidirectionalMigrationSuccessList = CollectGroupNumbers.CollectGroupNumbersForInstances("BidirectionalMigrationSuccessCases.csv", True)
-unidirectionalMigrationSuccessList = CollectGroupNumbers.CollectGroupNumbersForInstances("UnidirectionalMigrationSuccessCases.csv", True)
+migrationSuccessList = CollectGroupNumbers.CollectGroupNumbersForInstances("MigrationSuccessCases.csv", True) 
 
 no_effect_flags = []
-no_effect_flags_by_bidirectional = bidirectionalMigration(bidirectionalMigrationSuccessList)
-no_effect_flags_by_unidirectional = unidirectionalMigration(unidirectionalMigrationSuccessList)
-print(f"Number of no effect flags by bidirectional are {len(no_effect_flags_by_bidirectional)}")
-print(f"No effect flags by bidirectional are \n{no_effect_flags_by_bidirectional}")
-print(f"\nNumber of no effect flags by unidirectional are {len(no_effect_flags_by_unidirectional)}")
-print(f"No effect flags by unidirectional are \n{no_effect_flags_by_unidirectional}")
-no_effect_flags = no_effect_flags_by_bidirectional + no_effect_flags_by_unidirectional
-
-no_effect_flags = list(set(no_effect_flags))
-print(f"\nNumber of no effect flags are {len(no_effect_flags)}")
-print(f"No effect flags by are \n{no_effect_flags}")
+no_effect_flags_by_all = allSuccessMigration(migrationSuccessList)
+print(f"Number of no effect flags by all cases are {len(no_effect_flags_by_all)}")
+print(f"No effect flags by all cases are \n{no_effect_flags_by_all}")
+no_effect_flags = no_effect_flags_by_all
 
 df = df.drop(no_effect_flags, axis=1)
 CPU_FEATURES = CPUFeatures_h.all_CPU_features_simplification_by_lscpu()
@@ -94,8 +66,8 @@ for features, group in grouped:
 
 # 모든 row의 값이 동일한 컬럼 식별
 columns_to_remove = df_new.columns[df.nunique() == 1]
+print(f'\nremoving columns are.. \n{columns_to_remove.to_list()}')
 # 컬럼 제거
 df_new = df_new.drop(columns_to_remove, axis=1)
 
-print(df_new)
 GspreadUtils.write_AWS_migration_compatibility("Remove no effect flags 1", df_new)
