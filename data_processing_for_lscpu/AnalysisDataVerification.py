@@ -49,7 +49,6 @@ def GroupInternalMigrationCheck():
     # to list
     combinations = [[item[0], item[1]] for item in combinations]
     combinations.sort()
-    print(len(combinations))
 
     for i in range(len(combinations)):
         if combinations[i] not in success:
@@ -74,7 +73,6 @@ def GroupExternalMigrationCheck():
 
     combinations = [[item[0], item[1]] for item in combinations]
     combinations.sort()
-    print(len(combinations))
 
     for combination in combinations:
         if combination not in success:

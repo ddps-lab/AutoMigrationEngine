@@ -27,6 +27,8 @@ def allSuccessMigration(MigrationSuccessList):
     # 중복 제거.
     unique_items = set(flattened_list)
     unique_list = list(unique_items)
+
+    # flag 차이가 있음에도 마이그레이션에 성공, 실패하는 경우가 있음. 실패하는 케이스가 있기 때문에 영향이 있음으로 간주하고 해당 flag를 그룹화에 포함.
     unique_list.remove("rtm")
     unique_list.remove("hle")
 
