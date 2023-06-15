@@ -112,5 +112,35 @@ def scenario2_restore(groups, src, re_exp):
     with open(f'ansible.log', 'a') as f:
         subprocess.run(["ansible-playbook", "ssh_scripts/process-restore.yml",
                         "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
+        
+def scenario2_debug(groups, src, re_exp):
+    destinations = []
+    for i in range(len(groups)):
+        # 본인을 제외한 모든 그룹의 프로세스를 복원
+        if groups[i] == src:
+            continue
 
-    time.sleep(5)
+        with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
+            destination = f.readlines()
+        destinations += [dst.strip() for dst in destination]
+
+    inventory = {
+        "all": {
+            "vars": {
+                "ansible_user": "ubuntu",
+                "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
+            },
+            "hosts": {dst: None for dst in destinations}
+        },
+    }
+
+    if(re_exp):
+        src = 0
+
+    # Update dynamic inventory file
+    with open("ssh_scripts/inventory.json", "w") as f:
+        json.dump(inventory, f)
+
+    with open(f'ansible.log', 'a') as f:
+        subprocess.run(["ansible-playbook", "ssh_scripts/process-debug.yml",
+                        "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
