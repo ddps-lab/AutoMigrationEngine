@@ -16,7 +16,7 @@
         python3 /home/ubuntu/migration_test/increase_pid.py > /dev/null
 
     - name: Start workload
-      shell: nohup python3 /home/ubuntu/migration_test/matrix_mul.py 1>/dev/null 2>&1 &
+      shell: nohup python3 /home/ubuntu/migration_test/matrix_script/matrix_mul.py 1>/dev/null 2>&1 &
 
     - name: logging - write the src instance type
       shell: |

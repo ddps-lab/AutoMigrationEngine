@@ -5,8 +5,9 @@
   tasks:
     - name: Initialize destination instance
       shell: |
-        sudo rm -rf /home/ubuntu/migration_test/*.csv
-        sudo rm -rf /home/ubuntu/migration_test/*.log
+        sudo dmesg -C; \
+        sudo rm -rf /home/ubuntu/migration_test/*.csv; \
+        sudo rm -rf /home/ubuntu/migration_test/*.log; \
         sudo kill -9 $(pgrep -f matrix_mul.py)
       ignore_errors: yes
 
@@ -61,10 +62,24 @@
         python3 /home/ubuntu/migration_test/log_to_csv.py 
         mv /home/ubuntu/migration_test/migration_data.csv /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log).csv"
 
-    - name: Upload to S3 - test result
+    - name: Debugging for Migration Failures
       shell: |
-        aws s3 cp /home/ubuntu/migration_test/*.csv s3://migration-compatibility/Migration-between-groups/
+        python3 /home/ubuntu/migration_test/debug_scripts/debug.py {{ PID.stdout_lines[0] }} {{ src }}
+
+    - name: wait for 5 sec
+      wait_for:
+        timeout: 10
+      register: result
+
+    - name: Upload to S3 - migration result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/ s3://migration-compatibility/Migration-between-groups/matrix-multiplication/ --recursive --exclude "*" --include "*.csv" --exclude "*-debug.csv"
 
     - name: Upload to S3 - restore detail log
       shell: |
         aws s3 cp /home/ubuntu/migration_test/*-restore.log s3://migration-compatibility-detail
+
+    - name: Upload to S3 - debug result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*-debug.csv s3://migration-compatibility/Migration-failure-groups/matrix-multiplication/
+      ignore_errors: yes
