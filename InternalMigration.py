@@ -14,9 +14,9 @@ GROUP_NUMBER = 18
 start_time = datetime.datetime.now()
 # create infrastructure by group 
 with open(f'terraform.log', 'w') as f: # Created separately for reuse of some resources, such as VPCs
-    p = subprocess.Popen(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances'], cwd='infrastructure/Scenario1', stdout=f, stderr=f, encoding='utf-8')
+    p = subprocess.Popen(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances'], cwd='infrastructure/internal_migration', stdout=f, stderr=f, encoding='utf-8')
     p.wait()
-    p = subprocess.Popen(['terraform', 'apply', '-auto-approve'], cwd='infrastructure/Scenario1', stdout=f, stderr=f, encoding='utf-8')
+    p = subprocess.Popen(['terraform', 'apply', '-auto-approve'], cwd='infrastructure/internal_migration', stdout=f, stderr=f, encoding='utf-8')
     p.wait()
 
 print('\nComplete infrastructure creation')
@@ -79,7 +79,7 @@ for thread in threads:
 
 # destroy infrastructure by group 
 with open(f'terraform.log', 'a') as f:
-    p = subprocess.Popen(['terraform', 'destroy', '-auto-approve'], cwd='infrastructure/Scenario1', stdout=f, stderr=f)
+    p = subprocess.Popen(['terraform', 'destroy', '-auto-approve'], cwd='infrastructure/internal_migration', stdout=f, stderr=f)
     p.wait()
 
 end_time = datetime.datetime.now()

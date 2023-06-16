@@ -19,7 +19,7 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-ExprimentGroups = CollectGroupNumbers.CollectGroupNumbersForInstances("MigrationFailureCases.csv", True)
+ExprimentGroups = CollectGroupNumbers.CollectGroupNumbersForInstances("ExperimentFailureCases.csv", False)
 total_count = sum(len(sub_lst) for sub_lst in ExprimentGroups)
 source_count = len(ExprimentGroups)
 print(f"There are {source_count} source instances and {total_count - source_count} migrations to be performed..")
@@ -28,21 +28,15 @@ pprint(ExprimentGroups)
 # remove previous log
 subprocess.run(['rm', 'ansible.log'])
 
-temp = [25]
 start_time = datetime.datetime.now()
 with tqdm(total=len(ExprimentGroups), unit='Processing') as pbar:
     for i in range(len(ExprimentGroups)):
-        if ExprimentGroups[i][0] not in temp:
-            pbar.update(1)
-            time.sleep(1)
-            continue
-
         # create infrastructure by group
         with open(f'terraform.log', 'w') as f:
             subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances', '-var', f'group={ExprimentGroups[i]}'],
-                        cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
+                        cwd='infrastructure/external_migration', stdout=f, stderr=f, encoding='utf-8')
             subprocess.run(['terraform', 'apply', '-auto-approve', '-var', f'group={ExprimentGroups[i]}'],
-                        cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
+                        cwd='infrastructure/external_migration', stdout=f, stderr=f, encoding='utf-8')
 
         time.sleep(90)
         # checking instance status
@@ -83,18 +77,16 @@ with tqdm(total=len(ExprimentGroups), unit='Processing') as pbar:
         playbook.externalMigrationDump([ExprimentGroups[i][0]])
 
         # Execute an Ansible command to start the restore.
-        playbook.externalMigrationDebug(ExprimentGroups[i], ExprimentGroups[i][0], True)
+        playbook.externalMigrationRestore(ExprimentGroups[i], ExprimentGroups[i][0], True)
 
         # destroy infrastructure by group
         with open(f'terraform.log', 'a') as f:
             p = subprocess.Popen(['terraform', 'destroy', '-auto-approve', '-var', f'group={ExprimentGroups[i]}'],
-                                cwd='infrastructure/Scenario2', stdout=f, stderr=f)
+                                cwd='infrastructure/external_migration', stdout=f, stderr=f)
             p.wait()
         
         pbar.update(1)
 
-        subprocess.run(['cp', 'ansible.log', f'ansible_dump{i}.log'])
-        
 end_time = datetime.datetime.now()
 
 elapsed_time = end_time - start_time

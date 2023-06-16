@@ -17,9 +17,9 @@ start_time = datetime.datetime.now()
 # create infrastructure by group
 with open(f'terraform.log', 'w') as f:
     subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances', '-var',
-                   f'group={CREATE_GRPUP}'], cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
+                   f'group={CREATE_GRPUP}'], cwd='infrastructure/external_migration', stdout=f, stderr=f, encoding='utf-8')
     subprocess.run(['terraform', 'apply', '-auto-approve', '-var', f'group={CREATE_GRPUP}'],
-                   cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
+                   cwd='infrastructure/external_migration', stdout=f, stderr=f, encoding='utf-8')
 
 print('\nComplete infrastructure creation')
 
@@ -86,7 +86,7 @@ with tqdm(total=len(CREATE_GRPUP), unit='Processing') as pbar:
 # destroy infrastructure by groups
 with open(f'terraform.log', 'a') as f:
     p = subprocess.Popen(['terraform', 'destroy', '-auto-approve', '-var',
-                         f'group={CREATE_GRPUP}'], cwd='infrastructure/Scenario2', stdout=f, stderr=f)
+                         f'group={CREATE_GRPUP}'], cwd='infrastructure/external_migration', stdout=f, stderr=f)
     p.wait()
 
 end_time = datetime.datetime.now()
