@@ -10,7 +10,8 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-CREATE_GRPUP = [i for i in range(31)]
+# CREATE_GRPUP = [i for i in range(31)]
+CREATE_GRPUP = [i for i in range(10)]
 
 start_time = datetime.datetime.now()
 # create infrastructure by group
@@ -21,6 +22,8 @@ with open(f'terraform.log', 'w') as f:
                    cwd='infrastructure/Scenario2', stdout=f, stderr=f, encoding='utf-8')
 
 print('\nComplete infrastructure creation')
+
+time.sleep(100)
 
 # checking instance status
 while True:
@@ -64,7 +67,7 @@ while True:
 print('Pass all instance health checks')
 
 # Execute an Ansible command to start the checkpoint.
-playbook.scenario2_dump(CREATE_GRPUP)
+playbook.externalMigrationDump(CREATE_GRPUP)
 
 dump_time = datetime.datetime.now()
 elapsed_time = dump_time - start_time
@@ -74,8 +77,11 @@ print(f'total time : {total_seconds}')
 # Execute an Ansible command to start the restore.
 with tqdm(total=len(CREATE_GRPUP), unit='Processing') as pbar:
     for i in CREATE_GRPUP:
-        playbook.scenario2_restore(CREATE_GRPUP, CREATE_GRPUP[i], False)
+        if i == 9:
+            playbook.externalMigrationRestore(CREATE_GRPUP, CREATE_GRPUP[i], False)
+            break
         pbar.update(1)
+        time.sleep(1)
     
 # destroy infrastructure by groups
 with open(f'terraform.log', 'a') as f:

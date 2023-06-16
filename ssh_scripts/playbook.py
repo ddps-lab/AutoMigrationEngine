@@ -2,7 +2,7 @@ import subprocess
 import time
 import json
 
-def scenario1(group_number):
+def internalMigration(group_number):
     with open("ssh_scripts/inventory_" + group_number + ".txt") as f:
         hosts = f.readlines()
     hosts = [host.strip() for host in hosts]
@@ -46,7 +46,7 @@ def scenario1(group_number):
             json.dump(inventory, f)
 
         with open(f'group{group_number}.log', 'a') as f:
-            subprocess.run(["ansible-playbook", "ssh_scripts/without-container.yml", "-i",
+            subprocess.run(["ansible-playbook", "ssh_scripts/matrix_multiplication/internal-migration.yml", "-i",
                            "ssh_scripts/inventory_" + group_number + ".json"], stdout=f, stderr=f)
 
         time.sleep(5)
@@ -55,7 +55,7 @@ def scenario1(group_number):
     total_time = end_time - start_time
     print(f"group{group_number} total execution time: {total_time}")
 
-def scenario2_dump(groups):
+def externalMigrationDump(groups):
     sources = []
     for i in range(len(groups)):
         with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
@@ -77,11 +77,11 @@ def scenario2_dump(groups):
         json.dump(inventory, f)
 
     with open(f'ansible.log', 'w') as f:
-            subprocess.run(["ansible-playbook", "ssh_scripts/process-dump.yml",
+            subprocess.run(["ansible-playbook", "ssh_scripts/matrix_multiplication/external-migration-dump.yml",
                            "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
 
 
-def scenario2_restore(groups, src, re_exp):
+def externalMigrationRestore(groups, src, re_exp):
     destinations = []
     for i in range(len(groups)):
         # 본인을 제외한 모든 그룹의 프로세스를 복원
@@ -110,10 +110,10 @@ def scenario2_restore(groups, src, re_exp):
         json.dump(inventory, f)
 
     with open(f'ansible.log', 'a') as f:
-        subprocess.run(["ansible-playbook", "ssh_scripts/process-restore.yml",
+        subprocess.run(["ansible-playbook", "ssh_scripts/matrix_multiplication/external-migration-restore.yml",
                         "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
         
-def scenario2_debug(groups, src, re_exp):
+def externalMigrationDebug(groups, src, re_exp):
     destinations = []
     for i in range(len(groups)):
         # 본인을 제외한 모든 그룹의 프로세스를 복원
@@ -142,5 +142,5 @@ def scenario2_debug(groups, src, re_exp):
         json.dump(inventory, f)
 
     with open(f'ansible.log', 'a') as f:
-        subprocess.run(["ansible-playbook", "ssh_scripts/process-debug.yml",
+        subprocess.run(["ansible-playbook", "ssh_scripts/matrix_multiplication/external-migration-debug.yml",
                         "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
