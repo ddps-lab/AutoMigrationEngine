@@ -2,7 +2,18 @@ import subprocess
 import time
 import json
 
-def internalMigration(group_number):
+WORKLOAD = ['matrix_multiplication', 'redis']
+
+
+def setWorkload():
+    print('Select workloads to experiment with')
+    print(f'1. {WORKLOAD[0]}\n2. {WORKLOAD[1]}\n')
+    index = int(input()) - 1
+
+    return index
+
+
+def internalMigration(group_number, index):
     with open("ssh_scripts/inventory_" + group_number + ".txt") as f:
         hosts = f.readlines()
     hosts = [host.strip() for host in hosts]
@@ -46,7 +57,7 @@ def internalMigration(group_number):
             json.dump(inventory, f)
 
         with open(f'group{group_number}.log', 'a') as f:
-            subprocess.run(["ansible-playbook", "ssh_scripts/matrix_multiplication/internal-migration.yml", "-i",
+            subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD[index]}/internal-migration.yml", "-i",
                            "ssh_scripts/inventory_" + group_number + ".json"], stdout=f, stderr=f)
 
         time.sleep(5)
@@ -55,7 +66,8 @@ def internalMigration(group_number):
     total_time = end_time - start_time
     print(f"group{group_number} total execution time: {total_time}")
 
-def externalMigrationDump(groups):
+
+def externalMigrationDump(groups, index):
     sources = []
     for i in range(len(groups)):
         with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
@@ -77,11 +89,11 @@ def externalMigrationDump(groups):
         json.dump(inventory, f)
 
     with open(f'ansible.log', 'w') as f:
-            subprocess.run(["ansible-playbook", "ssh_scripts/matrix_multiplication/external-migration-dump.yml",
-                           "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD[index]}/external-migration-dump.yml",
+                       "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
 
 
-def externalMigrationRestore(groups, src, re_exp):
+def externalMigrationRestore(groups, src, re_exp, index):
     destinations = []
     for i in range(len(groups)):
         # 본인을 제외한 모든 그룹의 프로세스를 복원
@@ -102,7 +114,7 @@ def externalMigrationRestore(groups, src, re_exp):
         },
     }
 
-    if(re_exp):
+    if (re_exp):
         src = 0
 
     # Update dynamic inventory file
@@ -110,10 +122,11 @@ def externalMigrationRestore(groups, src, re_exp):
         json.dump(inventory, f)
 
     with open(f'ansible.log', 'a') as f:
-        subprocess.run(["ansible-playbook", "ssh_scripts/matrix_multiplication/external-migration-restore.yml",
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD[index]}/external-migration-restore.yml",
                         "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
-        
-def externalMigrationDebug(groups, src, re_exp):
+
+
+def externalMigrationDebug(groups, src, re_exp, index):
     destinations = []
     for i in range(len(groups)):
         # 본인을 제외한 모든 그룹의 프로세스를 복원
@@ -134,7 +147,7 @@ def externalMigrationDebug(groups, src, re_exp):
         },
     }
 
-    if(re_exp):
+    if (re_exp):
         src = 0
 
     # Update dynamic inventory file
@@ -142,5 +155,5 @@ def externalMigrationDebug(groups, src, re_exp):
         json.dump(inventory, f)
 
     with open(f'ansible.log', 'a') as f:
-        subprocess.run(["ansible-playbook", "ssh_scripts/matrix_multiplication/external-migration-debug.yml",
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD[index]}/external-migration-debug.yml",
                         "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
