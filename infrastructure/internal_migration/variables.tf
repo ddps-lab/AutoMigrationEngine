@@ -22,3 +22,8 @@ variable "key_name" {
   type    = string
   default = "junho_us"
 }
+
+variable "user" {
+  type    = string
+  default = "ec2-user"
+}

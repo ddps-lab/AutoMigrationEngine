@@ -29,3 +29,7 @@ variable "security_group_id" {
 variable "efs_dns_name" {
   type = string
 }
+
+variable "user" {
+  type = string
+}

@@ -26,3 +26,8 @@ variable "key_name" {
 variable "group" {
   type = list
 }
+
+variable "user" {
+  type    = string
+  default = "ec2-user"
+}

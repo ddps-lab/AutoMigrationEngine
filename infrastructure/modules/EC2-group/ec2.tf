@@ -17,8 +17,8 @@ resource "aws_instance" "ec2" {
   user_data = <<-EOF
             #!/bin/bash
             sleep 60
-            mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${var.efs_dns_name}:/ /home/ubuntu/migration_test/dump
-            sudo chown ubuntu:ubuntu /home/ubuntu/migration_test/dump
+            mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${var.efs_dns_name}:/ /home/${var.user}/migration_test/dump
+            sudo chown ${var.user}:${var.user} /home/${var.user}/migration_test/dump
             sudo timedatectl set-timezone 'Asia/Seoul'
             sudo hostnamectl set-hostname ${var.instance_group[count.index]}
             EOF

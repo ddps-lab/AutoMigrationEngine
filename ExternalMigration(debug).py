@@ -83,7 +83,7 @@ with tqdm(total=len(ExprimentGroups), unit='Processing') as pbar:
         playbook.externalMigrationDump([ExprimentGroups[i][0]])
 
         # Execute an Ansible command to start the restore.
-        playbook.externalMigrationDebug(ExprimentGroups[i], ExprimentGroups[i][0], True)
+        playbook.externalMigrationDebug(ExprimentGroups[i], ExprimentGroups[i][0], re_exp=True)
 
         # destroy infrastructure by group
         with open(f'terraform.log', 'a') as f:

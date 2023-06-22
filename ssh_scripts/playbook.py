@@ -2,18 +2,24 @@ import subprocess
 import time
 import json
 
-WORKLOAD = ['matrix_multiplication', 'redis']
+WORKLOAD = ''
+USER = ''
 
 
 def setWorkload():
+    global WORKLOAD
+    global USER
+
+    workloads = ['matrix_multiplication', 'redis', 'ubuntu_container']
+    users = ['ubuntu', 'ubuntu', 'ec2-user']
     print('Select workloads to experiment with')
-    print(f'1. {WORKLOAD[0]}\n2. {WORKLOAD[1]}\n')
+    print(f'1. {workloads[0]}\n2. {workloads[1]}\n3. {workloads[2]}\n')
     index = int(input()) - 1
 
-    return index
+    WORKLOAD = workloads[index]
+    USER = users[index]
 
-
-def internalMigration(group_number, index):
+def internalMigration(group_number):
     with open("ssh_scripts/inventory_" + group_number + ".txt") as f:
         hosts = f.readlines()
     hosts = [host.strip() for host in hosts]
@@ -21,7 +27,7 @@ def internalMigration(group_number, index):
     inventory = {
         "all": {
             "vars": {
-                "ansible_user": "ubuntu",
+                "ansible_user": f"{USER}",
                 "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
             },
             "hosts": {},
@@ -57,7 +63,7 @@ def internalMigration(group_number, index):
             json.dump(inventory, f)
 
         with open(f'group{group_number}.log', 'a') as f:
-            subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD[index]}/internal-migration.yml", "-i",
+            subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/internal-migration.yml", "-i",
                            "ssh_scripts/inventory_" + group_number + ".json"], stdout=f, stderr=f)
 
         time.sleep(5)
@@ -67,7 +73,7 @@ def internalMigration(group_number, index):
     print(f"group{group_number} total execution time: {total_time}")
 
 
-def externalMigrationDump(groups, index):
+def externalMigrationDump(groups):
     sources = []
     for i in range(len(groups)):
         with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
@@ -77,7 +83,7 @@ def externalMigrationDump(groups, index):
     inventory = {
         "all": {
             "vars": {
-                "ansible_user": "ubuntu",
+                "ansible_user": f"{USER}",
                 "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
             },
             "hosts": {src: None for src in sources}
@@ -89,11 +95,11 @@ def externalMigrationDump(groups, index):
         json.dump(inventory, f)
 
     with open(f'ansible.log', 'w') as f:
-        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD[index]}/external-migration-dump.yml",
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/external-migration-dump.yml",
                        "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
 
 
-def externalMigrationRestore(groups, src, re_exp, index):
+def externalMigrationRestore(groups, src, re_exp=False):
     destinations = []
     for i in range(len(groups)):
         # 본인을 제외한 모든 그룹의 프로세스를 복원
@@ -107,7 +113,7 @@ def externalMigrationRestore(groups, src, re_exp, index):
     inventory = {
         "all": {
             "vars": {
-                "ansible_user": "ubuntu",
+                "ansible_user": f"{USER}",
                 "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
             },
             "hosts": {dst: None for dst in destinations}
@@ -122,11 +128,11 @@ def externalMigrationRestore(groups, src, re_exp, index):
         json.dump(inventory, f)
 
     with open(f'ansible.log', 'a') as f:
-        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD[index]}/external-migration-restore.yml",
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/external-migration-restore.yml",
                         "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
 
 
-def externalMigrationDebug(groups, src, re_exp, index):
+def externalMigrationDebug(groups, src, re_exp=False):
     destinations = []
     for i in range(len(groups)):
         # 본인을 제외한 모든 그룹의 프로세스를 복원
@@ -140,7 +146,7 @@ def externalMigrationDebug(groups, src, re_exp, index):
     inventory = {
         "all": {
             "vars": {
-                "ansible_user": "ubuntu",
+                "ansible_user": f"{USER}",
                 "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
             },
             "hosts": {dst: None for dst in destinations}
@@ -155,5 +161,5 @@ def externalMigrationDebug(groups, src, re_exp, index):
         json.dump(inventory, f)
 
     with open(f'ansible.log', 'a') as f:
-        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD[index]}/external-migration-debug.yml",
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/external-migration-debug.yml",
                         "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)

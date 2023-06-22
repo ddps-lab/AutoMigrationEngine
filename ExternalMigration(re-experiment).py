@@ -63,17 +63,17 @@ def createInfrastructure(i):
         time.sleep(10)
 
 
-def performTask(ExprimentGroups, workload):
+def performTask(ExprimentGroups):
     with tqdm(total=len(ExprimentGroups), unit='Processing') as pbar:
         for i in range(len(ExprimentGroups)):
             createInfrastructure(i)
 
             # Execute an Ansible command to start the checkpoint.
-            playbook.externalMigrationDump([ExprimentGroups[i][0]], workload)
+            playbook.externalMigrationDump([ExprimentGroups[i][0]])
 
             # Execute an Ansible command to start the restore.
             playbook.externalMigrationRestore(
-                ExprimentGroups[i], ExprimentGroups[i][0], True, workload)
+                ExprimentGroups[i], ExprimentGroups[i][0], re_exp=True)
 
             destroyInfrastructure(i)
 

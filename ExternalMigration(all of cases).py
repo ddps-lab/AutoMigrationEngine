@@ -67,15 +67,15 @@ def createInfrastructure():
     print('Pass all instance health checks')
 
 
-def performTask(index):
+def performTask():
     # Execute an Ansible command to start the checkpoint.
-    playbook.externalMigrationDump(CREATE_GRPUP, index)
+    playbook.externalMigrationDump(CREATE_GRPUP)
 
     # Execute an Ansible command to start the restore.
     with tqdm(total=len(CREATE_GRPUP), unit='Processing') as pbar:
         for i in CREATE_GRPUP:
             playbook.externalMigrationRestore(
-                CREATE_GRPUP, CREATE_GRPUP[i], False, index)
+                CREATE_GRPUP, CREATE_GRPUP[i])
 
             pbar.update(1)
 
@@ -89,11 +89,11 @@ def destroyInfrastructure():
 
 
 if __name__ == '__main__':
-    index = playbook.setWorkload()
+    playbook.setWorkload()
     start_time = datetime.datetime.now()
 
     createInfrastructure()
-    performTask(index)
+    performTask()
     destroyInfrastructure()
 
     end_time = datetime.datetime.now()
