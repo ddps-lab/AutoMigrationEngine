@@ -9,8 +9,7 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-# CREATE_GRPUP = [i for i in range(31)]
-CREATE_GRPUP = [i for i in range(3)]
+CREATE_GRPUP = [i for i in range(31)]
 
 
 def createInfrastructure():
@@ -23,11 +22,11 @@ def createInfrastructure():
 
     print('\nComplete infrastructure creation')
 
-    time.sleep(100)
+    time.sleep(120)
 
     # checking instance status
+    print('checking instance status...')
     while True:
-        print('checking instance status...')
         instances = ec2_client.describe_instances(Filters=[
             {
                 'Name': 'tag:Name',
@@ -45,14 +44,11 @@ def createInfrastructure():
                 instance_state = instance_obj.state['Name']
 
                 if instance_state == 'terminated':
-                    print(f"Instance {instance_id} is terminated")
                     break
 
                 status = ec2_client.describe_instance_status(
                     InstanceIds=[instance_id])
                 if 'InstanceStatuses' not in status or status['InstanceStatuses'][0]['InstanceStatus']['Status'] != 'ok':
-                    print(
-                        f"Instance {instance_id} is not yet ready. Waiting 5 seconds...")
                     all_running = False
                     break
 
@@ -60,7 +56,6 @@ def createInfrastructure():
                 break
 
         if all_running:
-            print('All instances are running')
             break
         time.sleep(10)
 

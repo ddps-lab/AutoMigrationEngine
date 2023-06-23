@@ -1,0 +1,50 @@
+---
+- name : Migration compatibility check - dst
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Initialize contaier
+      shell: /home/ec2-user/migration_test/podman_init.sh -l
+      become: true
+      ignore_errors: yes
+
+    - name: copy dump/log to log dir
+      shell: |
+        cp /home/ec2-user/migration_test/dump/{{ src }}/*.log /home/ec2-user/migration_test/log
+
+    - name: logging - write the restore start time
+      shell: |
+        echo start restore : $(date) >> /home/ec2-user/migration_test/log/timestamp.log
+
+    - name: logging - write the dst instance type
+      shell: |
+        INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type)
+        sed -i "2i dst : $INSTANCE_TYPE" /home/ec2-user/migration_test/log/performance.log
+
+    - name: Container restore
+      shell: |
+        /home/ec2-user/migration_test/restore.sh -n {{ src }}
+      become: true
+
+    - name: wait for 5 sec
+      wait_for:
+        timeout: 5
+      register: result
+    
+    - name: logging - write the restore end time
+      shell: |
+        echo end restore : $(date) >> /home/ec2-user/migration_test/log/timestamp.log
+
+    - name: Container health check
+      shell: |
+        /home/ec2-user/migration_test/container_health_check.sh
+      become: true
+
+    - name: Log to CSV
+      shell: |
+        python3 /home/ec2-user/migration_test/log_to_csv.py 
+        mv /home/ec2-user/migration_test/migration_data.csv /home/ec2-user/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ec2-user/migration_test/log/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ec2-user/migration_test/log/performance.log).csv"
+
+    - name: Upload to S3
+      shell: |
+        aws s3 cp /home/ec2-user/migration_test/*.csv s3://migration-compatibility/Migration-between-groups/ubuntu_container/
