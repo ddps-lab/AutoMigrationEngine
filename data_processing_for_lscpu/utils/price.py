@@ -1,24 +1,38 @@
 import pandas as pd
 from pathlib import Path
 
+# 모든 행과 열을 출력하도록 옵션 설정
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+
 data_processing_for_lscpu_path = str(Path(__file__).resolve().parent.parent)
 
-instances_for_rhel = ["t3a.large", "m5a.large", "m5a.2xlarge", "m5a.8xlarge", "c5a.large", "c6a.large", "t2.large", "m4.large", "h1.2xlarge", "x1e.xlarge", "r4.large", "i3.large", "c5a.24xlarge", "c6a.24xlarge", "c4.8xlarge", "h1.8xlarge", "h1.16xlarge", "x1e.8xlarge", "m4.16xlarge", "r4.8xlarge", "r4.16xlarge", "c6i.large", "t3.large", "c5.large", "m5n.large", "t3.2xlarge", "m5.large", "c6i.16xlarge", "c5d.9xlarge", "m5zn.6xlarge", "c5.9xlarge"]
+instances = ["x1e.8xlarge", "f1.16xlarge", "r4.16xlarge", "r4.xlarge", "i3.xlarge", "i3.8xlarge", "m5d.metal", "g3.8xlarge", "x1.16xlarge", "z1d.metal", "x1e.16xlarge", "i3.large", "m4.16xlarge", "f1.2xlarge", "r4.large", "p2.8xlarge", "f1.4xlarge", "x1e.32xlarge", "r4.2xlarge", "p3.8xlarge", "i3.16xlarge", "x1.32xlarge", "x1e.4xlarge", "c5n.metal", "p3.2xlarge", "i3.4xlarge", "r4.4xlarge", "r4.8xlarge", "g3.16xlarge", "i3.metal", "g3.4xlarge", "g3s.xlarge", "i3.2xlarge", "p2.xlarge", "x1e.xlarge", "x1e.2xlarge", "p3.16xlarge", "r6idn.32xlarge", "x2idn.16xlarge", "c6in.large", "r5d.12xlarge", "c5d.4xlarge", "z1d.xlarge", "m6id.2xlarge", "c6in.12xlarge", "m5zn.large", "m5dn.16xlarge", "r5n.2xlarge", "t2.2xlarge", "d3.xlarge", "m5n.2xlarge", "m6id.12xlarge", "m4.xlarge", "vt1.6xlarge", "r6id.xlarge", "r6i.8xlarge", "r6in.2xlarge", "dl1.24xlarge", "r5n.xlarge", "c6in.xlarge", "c6id.2xlarge", "r5n.large", "t3.2xlarge", "m5.4xlarge", "c5.metal", "r6idn.4xlarge", "c5d.24xlarge", "g4dn.16xlarge", "m5zn.2xlarge", "m4.large", "r5d.2xlarge", "t3.small", "r6id.2xlarge", "m6i.24xlarge", "x2iedn.24xlarge", "m5n.large", "i3en.metal", "m5n.8xlarge", "c6i.12xlarge", "h1.4xlarge", "d3en.6xlarge", "r5dn.xlarge", "c5.12xlarge", "r5n.metal", "c5n.9xlarge", "i3en.large", "m5dn.xlarge", "x2iezn.8xlarge", "r5b.2xlarge", "x2iedn.metal", "x2iezn.metal", "m6idn.4xlarge", "m5d.4xlarge", "r5d.24xlarge", "r6idn.2xlarge", "m6id.16xlarge", "m6id.8xlarge", "t3.micro", "m5n.metal", "c6in.32xlarge", "c5d.12xlarge", "m5d.xlarge", "m5d.12xlarge", "r5.large", "r6idn.12xlarge", "c6in.24xlarge", "m6in.32xlarge", "r5b.24xlarge", "r6in.12xlarge", "i4i.large", "z1d.6xlarge", "r6in.16xlarge", "r5b.metal", "m5.metal", "z1d.large", "r6i.2xlarge", "c6id.12xlarge", "x2iezn.12xlarge", "c6in.4xlarge", "r6i.32xlarge", "c5.18xlarge", "r6idn.16xlarge", "c6i.16xlarge", "r5d.xlarge", "g4dn.8xlarge", "m5.8xlarge", "g4dn.12xlarge", "m6id.xlarge", "m6i.xlarge", "r6id.12xlarge", "r5n.8xlarge", "c5n.xlarge", "m5n.12xlarge", "r6id.8xlarge", "c6id.16xlarge", "h1.2xlarge", "r6idn.xlarge", "c5d.9xlarge", "m6idn.16xlarge", "m5dn.12xlarge", "m6in.4xlarge", "d3en.2xlarge", "r6idn.8xlarge", "r5dn.24xlarge", "h1.8xlarge", "r6idn.large", "r6id.16xlarge", "inf1.2xlarge", "r6in.24xlarge", "c6id.8xlarge", "m5d.16xlarge", "r6in.xlarge", "c6id.32xlarge", "r5b.8xlarge", "r6i.metal", "m5n.24xlarge", "c6in.16xlarge", "m6idn.24xlarge", "m5.16xlarge", "m5dn.24xlarge", "c6i.8xlarge", "m6i.8xlarge", "c6i.2xlarge", "m5.2xlarge", "z1d.12xlarge", "i4i.2xlarge", "t3.nano", "i3en.2xlarge", "m6in.24xlarge", "m5dn.metal", "m5dn.large", "r5.xlarge", "r6i.large", "m6id.32xlarge", "r5dn.2xlarge", "r5dn.4xlarge", "m5.xlarge", "m4.4xlarge", "c6i.metal", "m6in.large", "r6in.32xlarge", "r6i.12xlarge", "x2idn.32xlarge", "d3.2xlarge", "r5d.16xlarge", "r5dn.metal", "r5n.16xlarge", "r5b.4xlarge", "g4dn.2xlarge", "c5d.18xlarge", "c6i.32xlarge", "m4.2xlarge", "vt1.3xlarge", "inf1.xlarge", "m5zn.3xlarge", "trn1.32xlarge", "m6i.12xlarge", "c6i.4xlarge", "m6in.16xlarge", "x2iedn.xlarge", "r5b.16xlarge", "m6in.xlarge", "i4i.metal", "r6in.large", "m6id.4xlarge", "c5n.18xlarge", "r5.metal", "r5.8xlarge", "i4i.8xlarge", "m6id.24xlarge", "r5b.12xlarge", "m5n.4xlarge", "r5d.metal", "inf1.24xlarge", "inf1.6xlarge", "g4dn.4xlarge", "m6in.12xlarge", "i3en.3xlarge", "r5dn.large", "g4dn.xlarge", "m5dn.8xlarge", "c5d.metal", "t3.xlarge", "r5.12xlarge", "c6in.2xlarge", "x2iedn.8xlarge", "c5n.2xlarge", "z1d.3xlarge", "c6id.metal", "z1d.2xlarge", "r5n.4xlarge", "m6i.2xlarge", "i4i.32xlarge", "c5.large", "r6i.xlarge", "r5dn.16xlarge", "r6in.8xlarge", "x2iedn.4xlarge", "c5n.4xlarge", "x2iezn.4xlarge", "d3.4xlarge", "i4i.xlarge", "c5.4xlarge", "t3.large", "r6i.24xlarge", "i4i.16xlarge", "r5.4xlarge", "m5d.24xlarge", "c5.xlarge", "r6id.metal", "m6i.4xlarge", "m5d.2xlarge", "r5b.xlarge", "x2iedn.32xlarge", "m5n.xlarge", "r6id.32xlarge", "r5d.8xlarge", "m5n.16xlarge", "r6i.16xlarge", "m5zn.xlarge", "g4dn.metal", "m5d.large", "c5d.large", "r6i.4xlarge", "m5zn.metal", "r6id.24xlarge", "m6idn.2xlarge", "r5d.large", "m6idn.large", "c5.2xlarge", "m6idn.32xlarge", "x2iedn.16xlarge", "d3en.8xlarge", "i4i.4xlarge", "c6id.24xlarge", "c5n.large", "m5zn.12xlarge", "c6id.4xlarge", "r6id.large", "d3en.xlarge", "m5dn.4xlarge", "c5d.2xlarge", "r6idn.24xlarge", "x2idn.metal", "m6in.2xlarge", "x2iezn.2xlarge", "x2iedn.2xlarge", "c6i.24xlarge", "c5.24xlarge", "m6in.8xlarge", "r6in.4xlarge", "m5.12xlarge", "r5dn.12xlarge", "i3en.6xlarge", "d3.8xlarge", "m5zn.6xlarge", "m5d.8xlarge", "x2iezn.6xlarge", "m6id.large", "m6i.large", "m6idn.8xlarge", "r6id.4xlarge", "m6i.16xlarge", "x2idn.24xlarge", "m6i.32xlarge", "r5.2xlarge", "c6id.large", "i3en.24xlarge", "i3en.xlarge", "r5b.large", "m6idn.12xlarge", "d3en.12xlarge", "c6in.8xlarge", "c6id.xlarge", "r5n.24xlarge", "m5.24xlarge", "r5.24xlarge", "c6i.xlarge", "c5d.xlarge", "m6id.metal", "i3en.12xlarge", "m6idn.xlarge", "c6i.large", "r5dn.8xlarge", "c5.9xlarge", "m5dn.2xlarge", "r5.16xlarge", "r5d.4xlarge", "t3.medium", "m6i.metal", "m5.large", "r5n.12xlarge", "d3en.4xlarge", "trn1.2xlarge", "d2.4xlarge", "m5ad.12xlarge", "r5a.8xlarge", "d2.2xlarge", "g5.8xlarge", "r5ad.24xlarge", "r5ad.2xlarge", "r6a.2xlarge", "r5ad.large", "t2.nano", "g4ad.16xlarge", "r6a.4xlarge", "c5ad.24xlarge", "r5ad.12xlarge", "m6a.16xlarge", "m6a.32xlarge", "c4.8xlarge", "c5a.24xlarge", "r6a.xlarge", "c5a.12xlarge", "c6a.16xlarge", "r6a.16xlarge", "m5ad.16xlarge", "g4ad.2xlarge", "m6a.2xlarge", "c6a.large", "r5ad.4xlarge", "r5a.16xlarge", "g5.24xlarge", "c6a.2xlarge", "g5.2xlarge", "c6a.xlarge", "r5a.xlarge", "r6a.48xlarge", "t2.medium", "c5a.2xlarge", "c4.xlarge", "g5.16xlarge", "d2.xlarge", "c6a.48xlarge", "t3a.micro", "m5a.12xlarge", "c4.2xlarge", "r6a.12xlarge", "m5a.24xlarge", "m6a.8xlarge", "c5ad.2xlarge", "c6a.4xlarge", "t2.large", "m6a.4xlarge", "r6a.8xlarge", "m5ad.2xlarge", "t2.micro", "c5a.4xlarge", "m6a.24xlarge", "m5ad.xlarge", "t3a.large", "g5.xlarge", "g4ad.xlarge", "c6a.8xlarge", "c5ad.4xlarge", "c5a.16xlarge", "m5a.16xlarge", "r5a.4xlarge", "g5.4xlarge", "g5.12xlarge", "m5ad.8xlarge", "t3a.xlarge", "r5a.2xlarge", "r6a.metal", "m6a.metal", "t2.xlarge", "c6a.24xlarge", "c5a.8xlarge", "r5a.24xlarge", "c5ad.8xlarge", "r5a.12xlarge", "t3a.nano", "t3a.small", "r6a.large", "m5a.4xlarge", "m5ad.large", "g5.48xlarge", "g4ad.8xlarge", "m6a.xlarge", "t3a.medium", "m6a.12xlarge", "c6a.12xlarge", "c6a.metal", "r6a.24xlarge", "t2.small", "c5ad.large", "r5ad.16xlarge", "c6a.32xlarge", "c5a.large", "c5a.xlarge", "m5ad.24xlarge", "m5a.large", "d2.8xlarge", "m6a.48xlarge", "m5ad.4xlarge", "g4ad.4xlarge", "c4.4xlarge", "r5ad.xlarge", "c4.large", "m5a.xlarge", "r5a.large", "r6a.32xlarge", "r5ad.8xlarge", "c5ad.xlarge", "m6a.large", "c5ad.12xlarge", "m5a.2xlarge", "t3a.2xlarge", "c5ad.16xlarge", "m5a.8xlarge"]
 
-df = pd.read_csv(f'{data_processing_for_lscpu_path}/utils/ec2 price(us-west-2, 23.05.24).csv', usecols=['Instance', 'RHEL On Demand cost', 'Linux On Demand cost'])
+df = pd.read_csv(f'{data_processing_for_lscpu_path}/utils/ec2 price(us-west-2, 23.09.02).csv', usecols=['API Name', 'On Demand', 'RHEL On Demand cost'])
 
 # 'RHEL On Demand cost' 컬럼에서 숫자 부분만 추출하여 float로 변환
 df['RHEL On Demand cost'] = df['RHEL On Demand cost'].str.extract('(\d+\.\d+)').astype(float)
-
-# 'Instance' 컬럼에서 instances_for_rhel에 있는 값들이 있는지를 찾아 그 행의 'RHEL On Demand cost' 값을 더함
-total_sum = df[df['Instance'].isin(instances_for_rhel)]['RHEL On Demand cost'].sum()
+# 'Instance' 컬럼에서 instances에 있는 값들이 있는지를 찾아 그 행의 'RHEL On Demand cost' 값을 더함
+total_sum = df[df['API Name'].isin(instances)]['RHEL On Demand cost'].sum()
 
 print(f'RHEL hourly rate : {total_sum}')
 
-# 'RHEL On Demand cost' 컬럼에서 숫자 부분만 추출하여 float로 변환
-df['Linux On Demand cost'] = df['Linux On Demand cost'].str.extract('(\d+\.\d+)').astype(float)
+############
 
-# 'Instance' 컬럼에서 instances_for_rhel에 있는 값들이 있는지를 찾아 그 행의 'RHEL On Demand cost' 값을 더함
-total_sum = df[df['Instance'].isin(instances_for_rhel)]['Linux On Demand cost'].sum()
+df['On Demand'] = df['On Demand'].str.extract('(\d+\.\d+)').astype(float)
+total_sum = df[df['API Name'].isin(instances)]['On Demand'].sum()
 
 print(f'linux hourly rate : {total_sum}')
+print(f'Per-minute Linux rate : {total_sum / 60}')
+
+df = pd.read_csv(f'{data_processing_for_lscpu_path}/utils/bill.csv', usecols=['instance', 'hour', 'price'])
+
+# 3분 이상 1시간 미만으로 사용된 인스턴스스
+result = df[(df['hour'] >= 0.05) & (df['hour'] < 1)]
+result = result.sort_values(by='hour', ascending=False)
+print(result)
+
+# 'Column2'의 값의 합계 계산
+price = result['price'].sum()
+print("Sum of price:", price)
