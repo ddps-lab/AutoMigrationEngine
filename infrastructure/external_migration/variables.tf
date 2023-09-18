@@ -15,7 +15,7 @@ variable "availability_zone" {
 
 variable "ami_id" {
   type    = string
-  default = "ami-02bd4c36057a22916"
+  default = "ami-00fe41cfae7a0da0f"
 }
 
 variable "key_name" {
@@ -29,5 +29,5 @@ variable "group" {
 
 variable "user" {
   type    = string
-  default = "ec2-user"
+  default = "ubuntu"
 }

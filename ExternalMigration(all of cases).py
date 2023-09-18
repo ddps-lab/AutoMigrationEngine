@@ -9,8 +9,7 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-CREATE_GRPUP = [i for i in range(31)]
-
+CREATE_GRPUP = [i for i in range(27)]
 
 def createInfrastructure():
     # create infrastructure by group
@@ -21,6 +20,7 @@ def createInfrastructure():
                        cwd='infrastructure/external_migration', stdout=f, stderr=f, encoding='utf-8')
 
     print('\nComplete infrastructure creation')
+    print('wating 2 minute..')
 
     time.sleep(120)
 

@@ -1,0 +1,109 @@
+---
+- name : Migration compatibility check - dst
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Initialize destination instance
+      shell: |
+        sudo dmesg -C; \
+        sudo rm -rf /home/ubuntu/migration_test/*.csv; \
+        sudo rm -rf /home/ubuntu/migration_test/*.log; \
+        sudo kill -9 $(pgrep -f mnist)
+      ignore_errors: yes
+
+    - name: Copy the log from the dump directory
+      shell: |
+        cp /home/ubuntu/migration_test/dump/{{ src }}/*.log /home/ubuntu/migration_test; \
+        cp /home/ubuntu/migration_test/dump/{{ src}}/xgboost.log /home/ubuntu/migration_test
+
+    - name: logging - write the dst instance type
+      shell: |
+        INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type) && \
+        sed -i "2i dst : $INSTANCE_TYPE" /home/ubuntu/migration_test/performance.log
+
+    - name: Get workload PID
+      register: PID
+      shell: |
+        export PATH=$PATH:/home/ubuntu/criu-3.18/crit/; \
+        export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python; \
+        crit show /home/ubuntu/migration_test/dump/{{ src }}/pstree.img | jq '.entries[0].pid'
+
+    - name: logging - process ids
+      shell: |
+        ps -eLf | awk '{ if ($4 != "LWP") print $4 }' > /home/ubuntu/migration_test/dst-pids.log
+
+    # - name: Upload to S3 - PID logs
+    #   shell: |
+    #     src_file=$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)
+    #     dst_file=$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log)
+    #     echo "src" > "/home/ubuntu/migration_test/${src_file}_to_${dst_file}-pids.log"
+    #     cat /home/ubuntu/migration_test/src-pids.log >> "/home/ubuntu/migration_test/${src_file}_to_${dst_file}-pids.log"
+    #     echo "dst" >> "/home/ubuntu/migration_test/${src_file}_to_${dst_file}-pids.log"
+    #     cat /home/ubuntu/migration_test/dst-pids.log >> "/home/ubuntu/migration_test/${src_file}_to_${dst_file}-pids.log"
+    #     aws s3 cp "/home/ubuntu/migration_test/${src_file}_to_${dst_file}-pids.log" s3://migration-compatibility-detail
+
+    - name: logging - write the restore start time
+      shell: |
+        echo start restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
+
+    - name: Restore workload
+      shell: |
+        nohup sudo criu restore -j -v4 --display-stats -D /home/ubuntu/migration_test/dump/{{ src }} >> /home/ubuntu/migration_test/performance.log \
+        2>> /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log)-restore.log" &
+
+    - name: Wait for *-restore.log to be created
+      ansible.builtin.find:
+        paths: "/home/ubuntu/migration_test"
+        patterns: '*-restore.log'
+      register: found_files
+      until: found_files.matched > 0
+      retries: 3
+      delay: 10
+
+    - name: Check for success message in restore.log
+      shell: grep "Restore finished successfully. Tasks resumed." /home/ubuntu/migration_test/*-restore.log
+      register: grep_result
+      ignore_errors: yes
+      until: grep_result.rc == 0
+      retries: 18
+      delay: 10
+
+    - name: Fail if success message not found after all retries
+      fail:
+        msg: "Success message not found in restore log"
+      when: grep_result.rc != 0
+
+    - name: logging - write the restore end time
+      shell: |
+        echo end restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
+
+    # - name: wait for 10 sec
+    #   wait_for:
+    #     timeout: 10
+    #   register: result
+
+    - name: logging - write the workload state
+      shell: |
+        python3 /home/ubuntu/migration_test/logging_workload_state.py
+
+    - name: Log to CSV
+      shell: |
+        python3 /home/ubuntu/migration_test/log_to_csv.py 
+        mv /home/ubuntu/migration_test/migration_data.csv /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log).csv"
+
+    - name: Debugging for Migration Failures
+      shell: |
+        python3 /home/ubuntu/migration_test/debug_scripts/debug.py {{ PID.stdout_lines[0] }} {{ src }}
+
+    - name: Upload to S3 - migration result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/ s3://migration-compatibility/Migration-between-groups/xgboost/ --recursive --exclude "*" --include "*.csv" --exclude "*-debug.csv"
+
+    - name: Upload to S3 - restore detail log
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*-restore.log s3://migration-compatibility-detail
+
+    - name: Upload to S3 - debug result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*-debug.csv s3://migration-compatibility/Migration-failure-groups/xgboost/
+      ignore_errors: yes

@@ -1,0 +1,66 @@
+---
+- name: Migration compatibility check - src
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: set index variable
+      set_fact:
+        index: "{{ groups['all'].index(inventory_hostname) }}"  
+
+    - name: Initialize source instance
+      shell: |
+        mkdir /home/ubuntu/migration_test/dump/{{ index }}; \
+        sudo rm /home/ubuntu/migration_test/dump/xgboost.log
+      ignore_errors: yes
+
+    - name: Increase PID
+      shell: |
+        python3 /home/ubuntu/migration_test/increase_pid.py > /dev/null
+
+    - name: Start workload
+      shell: nohup python3 /home/ubuntu/migration_test/xgboost_scripts/mnist.py > /dev/null 2>&1 &
+
+    - name: logging - write the src instance type
+      shell: |
+        echo "src : $(curl http://169.254.169.254/latest/meta-data/instance-type)" > /home/ubuntu/migration_test/dump/{{ index }}/performance.log
+
+    - name: Get workload PID
+      shell: pgrep -f mnist
+      register: PID
+
+    - name: logging - process ids
+      shell: |
+        ps -eLf | awk '$2 == {{ PID.stdout_lines[0] }} { print $4 }' > /home/ubuntu/migration_test/dump/{{ index }}/src-pids.log
+
+    - name: Wait until xgboost.log has at least one line
+      shell: wc -l /home/ubuntu/migration_test/xgboost.log | awk '{print $1}'
+      register: linecount
+      retries: 12
+      delay: 5  # wait for 5 seconds between retries
+      until: linecount.stdout | int >= 1
+
+    - name: Fail if the log file doesn't have at least one line after waiting
+      fail:
+        msg: "/home/ubuntu/migration_test/xgboost.log did not have a line after waiting for 60 seconds"
+      when: linecount.stdout | int < 1
+
+    - name: logging - write the checkpoint start time
+      shell: |
+        echo start checkpoint : $(date +'%Y-%m-%dT%H:%M:%S') > /home/ubuntu/migration_test/dump/{{ index }}/timestamp.log
+
+    - name: Checkpoint workload
+      shell: |
+        sudo criu dump -j -v4 --display-stats -D /home/ubuntu/migration_test/dump/{{ index }}/ -t {{ PID.stdout_lines[0] }} >> /home/ubuntu/migration_test/dump/{{ index }}/performance.log \
+        2> /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/dump/{{ index }}/performance.log)-dump.log"
+
+    - name: logging - write the checkpoint end time
+      shell: |
+        echo end checkpoint : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/dump/{{ index }}/timestamp.log
+
+    - name: logging - xgboost log copy to dump dir
+      shell: |
+        cp /home/ubuntu/migration_test/xgboost.log /home/ubuntu/migration_test/dump/{{ index }}
+
+    - name: Upload to S3 - dump detail log
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*-dump.log s3://migration-compatibility-detail
