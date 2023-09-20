@@ -73,12 +73,17 @@ def internalMigration(group_number):
     print(f"group{group_number} total execution time: {total_time}")
 
 
-def externalMigrationDump(groups):
+def externalMigrationDump(groups, re_exp=False):
     sources = []
-    for i in range(len(groups)):
-        with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
+    if re_exp:
+        with open("ssh_scripts/inventory_0.txt") as f:
             source = f.readlines()
         sources += [src.strip() for src in source]
+    else:
+        for i in range(len(groups)):
+            with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
+                source = f.readlines()
+            sources += [src.strip() for src in source]
 
     inventory = {
         "all": {
@@ -119,9 +124,6 @@ def externalMigrationRestore(groups, src, re_exp=False):
             "hosts": {dst: None for dst in destinations}
         },
     }
-
-    if (re_exp):
-        src = 0
 
     # Update dynamic inventory file
     with open("ssh_scripts/inventory.json", "w") as f:

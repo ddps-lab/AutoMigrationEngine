@@ -28,10 +28,6 @@
         export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python; \
         crit show /home/ubuntu/migration_test/dump/{{ src }}/pstree.img | jq '.entries[0].pid'
 
-    - name: logging - process ids
-      shell: |
-        ps -eLf | awk '{ if ($4 != "LWP") print $4 }' > /home/ubuntu/migration_test/dst-pids.log
-
     - name: logging - write the restore start time
       shell: |
         echo start restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
@@ -98,3 +94,8 @@
       shell: |
         aws s3 cp /home/ubuntu/migration_test/*-debug.csv s3://migration-compatibility/Migration-failure-groups/xgboost/
       ignore_errors: yes
+
+    # re-exp    
+    # - name: shutdown
+    #   shell: |
+    #     sudo shutdown now

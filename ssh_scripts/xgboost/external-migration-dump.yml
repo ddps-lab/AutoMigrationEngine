@@ -28,10 +28,6 @@
       shell: pgrep -f mnist
       register: PID
 
-    - name: logging - process ids
-      shell: |
-        ps -eLf | awk '$2 == {{ PID.stdout_lines[0] }} { print $4 }' > /home/ubuntu/migration_test/dump/{{ index }}/src-pids.log
-
     - name: Wait until xgboost.log has at least one line
       shell: wc -l /home/ubuntu/migration_test/xgboost.log | awk '{print $1}'
       register: linecount
