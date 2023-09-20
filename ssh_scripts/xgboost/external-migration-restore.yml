@@ -38,7 +38,7 @@
 
     - name: Restore workload
       shell: |
-        nohup sudo criu restore -j -v4 --display-stats -D /home/ubuntu/migration_test/dump/{{ src }} >> /home/ubuntu/migration_test/performance.log \
+        nohup sudo criu restore -j -s -v4 --display-stats -D /home/ubuntu/migration_test/dump/{{ src }} >> /home/ubuntu/migration_test/performance.log \
         2>> /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log)-restore.log" &
 
     - name: Wait for *-restore.log to be created
@@ -51,21 +51,27 @@
       delay: 10
 
     - name: Check for success message in restore.log
-      shell: grep "Restore finished successfully. Tasks resumed." /home/ubuntu/migration_test/*-restore.log
+      shell: grep -E "Restore finished successfully. Tasks resumed.|Restoring FAILED." /home/ubuntu/migration_test/*-restore.log
       register: grep_result
       ignore_errors: yes
       until: grep_result.rc == 0
       retries: 18
       delay: 10
 
-    - name: Fail if success message not found after all retries
+    - name: Restoring failed
       fail:
-        msg: "Success message not found in restore log"
-      when: grep_result.rc != 0
+        msg: "Restoring FAILED."
+      when:
+        - grep_result.rc != 0
+        - "'Restoring FAILED.' in grep_result.stdout"
 
     - name: logging - write the restore end time
       shell: |
         echo end restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
+
+    - name: process resume
+      shell: |
+        kill -CONT {{ PID.stdout_lines[0] }}
 
     - name: logging - write the workload state
       shell: |
