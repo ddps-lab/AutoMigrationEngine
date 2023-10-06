@@ -10,10 +10,10 @@ def setWorkload():
     global WORKLOAD
     global USER
 
-    workloads = ['matrix_multiplication', 'redis', 'ubuntu_container', 'xgboost']
-    users = ['ubuntu', 'ubuntu', 'ec2-user', 'ubuntu']
+    workloads = ['matrix_multiplication', 'redis', 'ubuntu_container', 'xgboost', 'rubin']
+    users = ['ubuntu', 'ubuntu', 'ec2-user', 'ubuntu', 'ubuntu']
     print('Select workloads to experiment with')
-    print(f'1. {workloads[0]}\n2. {workloads[1]}\n3. {workloads[2]}\n4. {workloads[3]}')
+    print(f'1. {workloads[0]}\n2. {workloads[1]}\n3. {workloads[2]}\n4. {workloads[3]}\n5. {workloads[4]}')
     index = int(input()) - 1
 
     WORKLOAD = workloads[index]

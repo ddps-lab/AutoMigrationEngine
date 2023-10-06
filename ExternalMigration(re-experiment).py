@@ -15,7 +15,7 @@ ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 s3_client = boto3.client('s3')
 
 bucket_name = 'migration-compatibility'
-prefix = 'Migration-between-groups/xgboost/'
+prefix = 'Migration-between-groups/rubin/'
 
 def createInfrastructure(CREATE_GROUP):
     # create infrastructure by group
