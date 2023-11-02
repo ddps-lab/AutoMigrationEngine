@@ -9,7 +9,8 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-CREATE_GRPUP = [i for i in range(27)]
+# CREATE_GRPUP = [i for i in range(27)]
+CREATE_GRPUP = [i for i in range(3)]
 
 def createInfrastructure():
     # create infrastructure by group
@@ -87,8 +88,8 @@ if __name__ == '__main__':
     playbook.setWorkload()
     start_time = datetime.datetime.now()
 
-    createInfrastructure()
-    performTask()
+    # createInfrastructure()
+    # performTask()
     destroyInfrastructure()
 
     end_time = datetime.datetime.now()
