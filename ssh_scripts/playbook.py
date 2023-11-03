@@ -10,14 +10,20 @@ def setWorkload():
     global WORKLOAD
     global USER
 
-    workloads = ['matrix_multiplication', 'redis', 'ubuntu_container', 'xgboost', 'rubin', 'c_matrix_multiplication', 'cpp_xgboost']
-    users = ['ubuntu', 'ubuntu', 'ec2-user', 'ubuntu', 'ubuntu', 'ubuntu', 'ubuntu']
+    workloads = ['matrix_multiplication', 'redis', 'ubuntu_container', 'xgboost', 'rubin', 'c_matrix_multiplication', 'cpp_xgboost', 'adox_adcx',
+                 'pku', 'rdseed', 'sha']
     print('Select workloads to experiment with')
     print(f'1. {workloads[0]}\n2. {workloads[1]}\n3. {workloads[2]}\n4. {workloads[3]}\n5. {workloads[4]}\n6. {workloads[5]}\n7. {workloads[6]}')
+    print(f'8. {workloads[7]}\n9. {workloads[8]}\n10. {workloads[9]}\n11. {workloads[10]}')
+    
     index = int(input()) - 1
 
     WORKLOAD = workloads[index]
-    USER = users[index]
+
+    if index == 2:
+        USER = 'ec2-user'
+    else:
+        USER = 'ubuntu'
 
 def internalMigration(group_number):
     with open("ssh_scripts/inventory_" + group_number + ".txt") as f:
