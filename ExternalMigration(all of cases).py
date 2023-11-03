@@ -12,14 +12,22 @@ ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 # CREATE_GRPUP = [i for i in range(27)]
 CREATE_GRPUP = [i for i in range(3)]
 
-def createInfrastructure():
+def createInfrastructure(option):
+    if option == 0:
+        cwd = 'infrastructure/external_migration'
+    elif option == 1:
+        cwd = 'infrastructure/external_migration_on_spot'
+    else:
+        print('invalid option')
+        exit()
+
     # create infrastructure by group
     with open(f'terraform.log', 'w') as f:
         subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances', '-var',
-                        f'group={CREATE_GRPUP}'], cwd='infrastructure/external_migration', stdout=f, stderr=f, encoding='utf-8')
+                        f'group={CREATE_GRPUP}'], cwd=cwd, stdout=f, stderr=f, encoding='utf-8')
         subprocess.run(['terraform', 'apply', '-auto-approve', '-var', f'group={CREATE_GRPUP}'],
-                       cwd='infrastructure/external_migration', stdout=f, stderr=f, encoding='utf-8')
-
+                    cwd=cwd, stdout=f, stderr=f, encoding='utf-8')
+        
     print('\nComplete infrastructure creation')
     print('wating 2 minute..')
 
@@ -86,10 +94,14 @@ def destroyInfrastructure():
 
 if __name__ == '__main__':
     playbook.setWorkload()
+
+    print('Select experiment option')
+    print('1. On-Demand\n2. Spot-Instance')
+    option = int(input()) - 1
     start_time = datetime.datetime.now()
 
-    # createInfrastructure()
-    # performTask()
+    createInfrastructure(option)
+    performTask()
     destroyInfrastructure()
 
     end_time = datetime.datetime.now()
