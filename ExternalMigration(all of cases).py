@@ -9,18 +9,9 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-# CREATE_GRPUP = [i for i in range(27)]
-CREATE_GRPUP = [i for i in range(3)]
+CREATE_GRPUP = [i for i in range(27)]
 
-def createInfrastructure(option):
-    if option == 0:
-        cwd = 'infrastructure/external_migration'
-    elif option == 1:
-        cwd = 'infrastructure/external_migration_on_spot'
-    else:
-        print('invalid option')
-        exit()
-
+def createInfrastructure(cwd):
     # create infrastructure by group
     with open(f'terraform.log', 'w') as f:
         subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances', '-var',
@@ -29,9 +20,9 @@ def createInfrastructure(option):
                     cwd=cwd, stdout=f, stderr=f, encoding='utf-8')
         
     print('\nComplete infrastructure creation')
-    print('wating 2 minute..')
+    print('wating 3 minute..')
 
-    time.sleep(120)
+    time.sleep(180)
 
     # checking instance status
     print('checking instance status...')
@@ -84,11 +75,11 @@ def performTask():
             pbar.update(1)
 
 
-def destroyInfrastructure():
+def destroyInfrastructure(cwd):
     # destroy infrastructure by groups
     with open(f'terraform.log', 'a') as f:
         p = subprocess.Popen(['terraform', 'destroy', '-auto-approve', '-var',
-                              f'group={CREATE_GRPUP}'], cwd='infrastructure/external_migration', stdout=f, stderr=f)
+                              f'group={CREATE_GRPUP}'], cwd=cwd, stdout=f, stderr=f)
         p.wait()
 
 
@@ -98,11 +89,20 @@ if __name__ == '__main__':
     print('Select experiment option')
     print('1. On-Demand\n2. Spot-Instance')
     option = int(input()) - 1
+
+    if option == 0:
+        cwd = 'infrastructure/external_migration'
+    elif option == 1:
+        cwd = 'infrastructure/external_migration_on_spot'
+    else:
+        print('invalid option')
+        exit()
+    
     start_time = datetime.datetime.now()
 
-    createInfrastructure(option)
+    createInfrastructure(cwd)
     performTask()
-    destroyInfrastructure()
+    destroyInfrastructure(cwd)
 
     end_time = datetime.datetime.now()
 
