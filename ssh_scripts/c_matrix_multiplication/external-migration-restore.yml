@@ -33,7 +33,7 @@
 
     - name: Restore workload
       shell: |
-        nohup sudo criu restore -j -s -v4 --display-stats -D /home/ubuntu/migration_test/dump/{{ src }} >> /home/ubuntu/migration_test/performance.log \
+        nohup sudo criu restore -j -v4 --display-stats -D /home/ubuntu/migration_test/dump/{{ src }} >> /home/ubuntu/migration_test/performance.log \
         2>> /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log)-restore.log" &
 
     - name: Wait for *-restore.log to be created
