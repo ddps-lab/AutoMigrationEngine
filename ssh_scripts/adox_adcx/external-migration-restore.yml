@@ -13,7 +13,7 @@
 
     - name: Copy the log from the dump directory
       shell: |
-        cp /home/ubuntu/migration_test/dump/{{ src }}/*.log /home/ubuntu/migration_test; \
+        cp /home/ubuntu/migration_test/dump/{{ src }}/*.log /home/ubuntu/migration_test
 
     - name: logging - write the dst instance type
       shell: |
@@ -88,6 +88,11 @@
     - name: Upload to S3 - restore detail log
       shell: |
         aws s3 cp /home/ubuntu/migration_test/*-restore.log s3://migration-compatibility-detail
+
+    - name: wait for 10 sec
+      wait_for:
+        timeout: 10
+      register: result
 
     - name: Upload to S3 - debug result
       shell: |

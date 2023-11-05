@@ -9,7 +9,7 @@
 
     - name: Initialize source instance
       shell: |
-        mkdir /home/ubuntu/migration_test/dump/{{ index }}; \
+        mkdir /home/ubuntu/migration_test/dump/{{ index }}
       ignore_errors: yes
 
     - name: Increase PID
@@ -19,7 +19,7 @@
     - name: Start workload
       shell: |
         export LD_BIND_NOW=1; \
-        nohup /home/ubuntu/migration_test/adx_scripts/rand > /dev/null 2>&1 &
+        nohup /home/ubuntu/migration_test/rdseed_scripts/rand > /dev/null 2>&1 &
 
     - name: logging - write the src instance type
       shell: |

@@ -8,12 +8,12 @@
         sudo dmesg -C; \
         sudo rm -rf /home/ubuntu/migration_test/*.csv; \
         sudo rm -rf /home/ubuntu/migration_test/*.log; \
-        sudo kill -9 $(pgrep -f sha)
+        sudo kill -9 $(pidof sha)
       ignore_errors: yes
 
     - name: Copy the log from the dump directory
       shell: |
-        cp /home/ubuntu/migration_test/dump/{{ src }}/*.log /home/ubuntu/migration_test; \
+        cp /home/ubuntu/migration_test/dump/{{ src }}/*.log /home/ubuntu/migration_test
 
     - name: logging - write the dst instance type
       shell: |

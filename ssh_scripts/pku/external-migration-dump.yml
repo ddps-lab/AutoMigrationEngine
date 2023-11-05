@@ -19,7 +19,7 @@
     - name: Start workload
       shell: |
         export LD_BIND_NOW=1; \
-        nohup /home/ubuntu/migration_test/adx_scripts/pku > /dev/null 2>&1 &
+        nohup /home/ubuntu/migration_test/pku_scripts/pku > /dev/null 2>&1 &
 
     - name: logging - write the src instance type
       shell: |

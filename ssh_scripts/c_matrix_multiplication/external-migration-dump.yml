@@ -9,7 +9,7 @@
 
     - name: Initialize source instance
       shell: |
-        mkdir /home/ubuntu/migration_test/dump/{{ index }}; \
+        mkdir /home/ubuntu/migration_test/dump/{{ index }}
       ignore_errors: yes
 
     - name: Increase PID
