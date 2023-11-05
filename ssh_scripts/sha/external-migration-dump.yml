@@ -9,7 +9,7 @@
 
     - name: Initialize source instance
       shell: |
-        mkdir /home/ubuntu/migration_test/dump/{{ index }}; \
+        mkdir /home/ubuntu/migration_test/dump/{{ index }}
       ignore_errors: yes
 
     - name: Increase PID
@@ -19,14 +19,15 @@
     - name: Start workload
       shell: |
         export LD_BIND_NOW=1; \
-        nohup /home/ubuntu/migration_test/adx_scripts/sha > /dev/null 2>&1 &
+        export LD_LIBRARY_PATH=/home/ubuntu/openssl-openssl-3.1.3:$LD_LIBRARY_PATH; \
+        nohup /home/ubuntu/migration_test/sha_scripts/sha > /dev/null 2>&1 &
 
     - name: logging - write the src instance type
       shell: |
         echo "src : $(curl http://169.254.169.254/latest/meta-data/instance-type)" > /home/ubuntu/migration_test/dump/{{ index }}/performance.log
 
     - name: Get workload PID
-      shell: pgrep -f sha
+      shell: pidof sha
       register: PID
 
     - name: logging - write the checkpoint start time
