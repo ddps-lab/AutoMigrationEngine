@@ -15,7 +15,7 @@ variable "availability_zone" {
 
 variable "ami_id" {
   type    = string
-  default = "ami-0151afc8542358e2f"
+  default = "ami-05cb6a1bd644455bb"
 }
 
 variable "key_name" {
