@@ -10,25 +10,27 @@ csv_path = str(Path(__file__).resolve().parent) + '/infrastructure/CPU Feature V
 
 import ssh_scripts.playbook as playbook
 
+from pprint import pprint
+
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 s3_client = boto3.client('s3')
 
 bucket_name = 'migration-compatibility'
-prefix = 'Migration-between-groups/rubin/'
+prefix = 'Migration-between-groups/c_matrix_multiplication/'
 
-def createInfrastructure(CREATE_GROUP):
+def createInfrastructure(CREATE_GROUP, cwd):
     # create infrastructure by group
     with open(f'terraform.log', 'w') as f:
         subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances', '-var',
-                        f'group={CREATE_GROUP}'], cwd='infrastructure/external_migration', stdout=f, stderr=f, encoding='utf-8')
+                        f'group={CREATE_GROUP}'], cwd=cwd, stdout=f, stderr=f, encoding='utf-8')
         subprocess.run(['terraform', 'apply', '-auto-approve', '-var', f'group={CREATE_GROUP}'],
-                       cwd='infrastructure/external_migration', stdout=f, stderr=f, encoding='utf-8')
+                       cwd=cwd, stdout=f, stderr=f, encoding='utf-8')
 
     print('\nComplete infrastructure creation')
-    print('wating 2 minute..')
+    print('wating 2.5 minute..')
 
-    time.sleep(120)
+    time.sleep(150)
 
     # checking instance status
     print('checking instance status...')
@@ -76,11 +78,11 @@ def performTask(CREATE_GROUP):
     playbook.externalMigrationRestore(CREATE_GROUP, 0, re_exp=True)
 
 
-def destroyInfrastructure(CREATE_GROUP):
+def destroyInfrastructure(CREATE_GROUP, cwd):
     # destroy infrastructure by groups
     with open(f'terraform.log', 'a') as f:
         p = subprocess.Popen(['terraform', 'destroy', '-auto-approve', '-var',
-                              f'group={CREATE_GROUP}'], cwd='infrastructure/external_migration', stdout=f, stderr=f)
+                              f'group={CREATE_GROUP}'], cwd=cwd, stdout=f, stderr=f)
         p.wait()
 
 
@@ -126,7 +128,7 @@ def getReExp():
 
     reExpCases.append({src: dsts})
     
-    print(reExpCases)
+    pprint(reExpCases, width=80)
 
     return reExpCases
 
@@ -147,6 +149,19 @@ def setCsv(cases):
 
 if __name__ == '__main__':
     playbook.setWorkload()
+
+    print('Select experiment option')
+    print('1. On-Demand\n2. Spot-Instance')
+    option = int(input()) - 1
+
+    if option == 0:
+        cwd = 'infrastructure/external_migration'
+    elif option == 1:
+        cwd = 'infrastructure/external_migration_on_spot'
+    else:
+        print('invalid option')
+        exit()
+
     start_time = datetime.datetime.now()
     
     reExpCases = getReExp()
@@ -158,9 +173,9 @@ if __name__ == '__main__':
             length = len(list(reExpCase.values())[0]) + 1
             CREATE_GROUP = [i for i in range(length)]
 
-            createInfrastructure(CREATE_GROUP)
+            createInfrastructure(CREATE_GROUP, cwd)
             performTask(CREATE_GROUP)
-            destroyInfrastructure(CREATE_GROUP)
+            destroyInfrastructure(CREATE_GROUP, cwd)
             pbar.update(1)
 
             time.sleep(5)
