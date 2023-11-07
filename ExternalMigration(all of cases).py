@@ -9,7 +9,7 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-CREATE_GRPUP = [i for i in range(27)]
+CREATE_GRPUP = [i for i in range(25)]
 
 def createInfrastructure(cwd):
     # create infrastructure by group
@@ -20,9 +20,9 @@ def createInfrastructure(cwd):
                     cwd=cwd, stdout=f, stderr=f, encoding='utf-8')
         
     print('\nComplete infrastructure creation')
-    print('wating 3 minute..')
+    print('wating 2.5 minute..')
 
-    time.sleep(180)
+    time.sleep(150)
 
     # checking instance status
     print('checking instance status...')
@@ -63,6 +63,9 @@ def createInfrastructure(cwd):
 
 
 def performTask():
+    # Extract ISA set from workload
+    playbook.funcTracking(CREATE_GRPUP)
+
     # Execute an Ansible command to start the checkpoint.
     playbook.externalMigrationDump(CREATE_GRPUP)
 
