@@ -1,7 +1,6 @@
 variable "region" {
   type    = string
   default = "us-west-2"
-  # default = "us-east-1"
 }
 
 variable "resource_prefix" {
@@ -12,13 +11,11 @@ variable "resource_prefix" {
 variable "availability_zone" {
   type    = string
   default = "us-west-2c"
-  # default = "us-east-1a"
 }
 
 variable "ami_id" {
   type    = string
-  default = "ami-0f319b2f53e9ace9d"
-  # default = "ami-005eef97af395dc92" us-east-1
+  default = "ami-0181422797a2c242b"
 }
 
 variable "key_name" {
