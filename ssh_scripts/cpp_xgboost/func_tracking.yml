@@ -6,10 +6,10 @@
     - name: Start workload
       shell: |
         export LD_BIND_NOW=1; \
-        nohup /home/ubuntu/migration_test/matrix_script/matrix_multiplication > /dev/null 2>&1 &
+        nohup /home/ubuntu/migration_test/xgboost_scripts/mnist > /dev/null 2>&1 &
 
     - name: Get workload PID
-      shell: pgrep -f matrix_multiplication
+      shell: pgrep -f mnist
       register: PID
 
     - name: func tracking
@@ -26,5 +26,5 @@
 
     - name: Upload to S3 - func tracking result
       shell: |
-        aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/func_tracking/c_matrix_multiplication/
+        aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/func_tracking/cpp_xgboost/
         
