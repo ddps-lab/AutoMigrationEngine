@@ -1,0 +1,31 @@
+---
+- name: Migration compatibility check - src
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Start workload
+      shell: |
+        export LD_BIND_NOW=1; \
+        export LD_LIBRARY_PATH=/home/ubuntu/openssl-openssl-3.1.3:$LD_LIBRARY_PATH; \
+        nohup /home/ubuntu/migration_test/sha_scripts/sha > /dev/null 2>&1 &
+
+    - name: Get workload PID
+      shell: pidof sha
+      register: PID
+
+    - name: func tracking
+      shell: |
+        sudo gdb -p {{ PID.stdout_lines[0] }} -x /home/ubuntu/migration_test/ins_disas/gdb_script_func_tracking.py
+
+    - name: renaming log
+      shell: |
+        mv /home/ubuntu/migration_test/ins_disas/log/isa_set.csv /home/ubuntu/migration_test/ins_disas/log/"$(curl http://169.254.169.254/latest/meta-data/instance-type).csv"
+
+    - name: clean process
+      shell: |
+        kill -9 {{ PID.stdout_lines[0] }}
+
+    - name: Upload to S3 - func tracking result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/func_tracking/sha/
+        
