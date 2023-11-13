@@ -1,6 +1,7 @@
 import subprocess
 import time
 import json
+import os
 
 WORKLOAD = ''
 USER = ''
@@ -11,10 +12,10 @@ def setWorkload():
     global USER
 
     workloads = ['matrix_multiplication', 'redis', 'ubuntu_container', 'xgboost', 'rubin', 'c_matrix_multiplication', 'cpp_xgboost', 'adox_adcx',
-                 'pku', 'rdseed', 'sha']
+                 'pku', 'rdseed', 'sha', 'criu_cpu_check']
     print('Select workloads to experiment with')
     print(f'1. {workloads[0]}\n2. {workloads[1]}\n3. {workloads[2]}\n4. {workloads[3]}\n5. {workloads[4]}\n6. {workloads[5]}\n7. {workloads[6]}')
-    print(f'8. {workloads[7]}\n9. {workloads[8]}\n10. {workloads[9]}\n11. {workloads[10]}')
+    print(f'8. {workloads[7]}\n9. {workloads[8]}\n10. {workloads[9]}\n11. {workloads[10]}\n12. {workloads[11]}')
     
     index = int(input()) - 1
 
@@ -79,6 +80,9 @@ def internalMigration(group_number):
     print(f"group{group_number} total execution time: {total_time}")
 
 def funcTracking(groups):
+    if not os.path.exists('ssh_scripts/{WORKLOAD}/func_tracking.yml'):
+        return
+    
     sources = []
 
     for i in range(len(groups)):

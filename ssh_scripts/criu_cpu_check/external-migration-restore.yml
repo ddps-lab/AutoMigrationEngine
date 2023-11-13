@@ -1,0 +1,34 @@
+---
+- name : Migration compatibility check - dst
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Initialize destination instance
+      shell: |
+        sudo rm -rf /home/ubuntu/migration_test/*.csv; \
+        sudo rm -rf /home/ubuntu/migration_test/*.log; \
+        sudo rm -rf /home/ubuntu/migration_test/*.img
+      ignore_errors: yes
+
+    - name: Copy the log from the dump directory
+      shell: |
+        cp /home/ubuntu/migration_test/dump/{{ src }}/* /home/ubuntu/migration_test
+
+    - name: logging - write the dst instance type
+      shell: |
+        INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type) && \
+        echo "dst : $INSTANCE_TYPE" >> /home/ubuntu/migration_test/cpuinfo.log
+
+    - name: cpuinfo check
+      shell: |
+        python3 /home/ubuntu/migration_test/criu_cpuinfo_check/cpuinfo_check.py
+
+    - name: Log to CSV
+      shell: |
+        python3 /home/ubuntu/migration_test/criu_cpuinfo_check/log_to_csv.py 
+        mv /home/ubuntu/migration_test/cpuinfo.csv /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/cpuinfo.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/cpuinfo.log).csv"
+
+    - name: Upload to S3 - cpuinfo check result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*.csv s3://migration-compatibility/criu-cpuinfo-check/
+      ignore_errors: yes

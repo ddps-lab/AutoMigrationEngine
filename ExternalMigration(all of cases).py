@@ -9,14 +9,14 @@ import ssh_scripts.playbook as playbook
 ec2_client = boto3.client('ec2', region_name='us-west-2')
 ec2_resource = boto3.resource('ec2', region_name='us-west-2')
 
-CREATE_GRPUP = [i for i in range(25)]
+CREATE_GRPUP = [i for i in range(27)]
 
 def createInfrastructure(cwd):
     # create infrastructure by group
     with open(f'terraform.log', 'w') as f:
         subprocess.run(['terraform', 'apply', '-auto-approve', '-target', 'module.read-instances', '-var',
                         f'group={CREATE_GRPUP}'], cwd=cwd, stdout=f, stderr=f, encoding='utf-8')
-        subprocess.run(['terraform', 'apply', '-auto-approve', '-var', f'group={CREATE_GRPUP}'],
+        subprocess.run(['terraform', 'apply', '-auto-approve', '-parallelism=30', '-var', f'group={CREATE_GRPUP}'],
                     cwd=cwd, stdout=f, stderr=f, encoding='utf-8')
         
     print('\nComplete infrastructure creation')
@@ -81,7 +81,7 @@ def performTask():
 def destroyInfrastructure(cwd):
     # destroy infrastructure by groups
     with open(f'terraform.log', 'a') as f:
-        p = subprocess.Popen(['terraform', 'destroy', '-auto-approve', '-var',
+        p = subprocess.Popen(['terraform', 'destroy', '-auto-approve', '-parallelism=30', '-var',
                               f'group={CREATE_GRPUP}'], cwd=cwd, stdout=f, stderr=f)
         p.wait()
 
