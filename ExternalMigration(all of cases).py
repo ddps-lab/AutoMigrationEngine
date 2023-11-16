@@ -66,6 +66,8 @@ def performTask():
     # Extract ISA set from workload
     playbook.funcTracking(CREATE_GRPUP)
 
+    playbook.entire_scanning(CREATE_GRPUP)
+
     # Execute an Ansible command to start the checkpoint.
     playbook.externalMigrationDump(CREATE_GRPUP)
 

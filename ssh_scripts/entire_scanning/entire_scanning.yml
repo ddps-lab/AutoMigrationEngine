@@ -1,0 +1,214 @@
+---
+- name: Migration compatibility check - src
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Start workload(adx)
+      shell: |
+        export LD_BIND_NOW=1; \
+        export LD_LIBRARY_PATH=/home/ubuntu/openssl-openssl-3.1.3:$LD_LIBRARY_PATH; \
+        nohup /home/ubuntu/migration_test/adx_scripts/rsa > /dev/null 2>&1 &
+
+    - name: Get workload PID
+      shell: pgrep -f rsa
+      register: PID
+
+    - name: entire scanning
+      shell: |
+        sudo gdb -p {{ PID.stdout_lines[0] }} -x /home/ubuntu/migration_test/ins_disas/gdb_script_entire_scanning.py
+
+    - name: renaming log
+      shell: |
+        mv /home/ubuntu/migration_test/ins_disas/log/isa_set.csv /home/ubuntu/migration_test/ins_disas/log/"$(curl http://169.254.169.254/latest/meta-data/instance-type).csv"
+
+    - name: Upload to S3 - entire scanning result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/entire-scanning/adox_adcx/
+
+    - name: clean-up process
+      shell: |
+        sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.csv; \
+        sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.txt; \
+        kill -9 {{ PID.stdout_lines[0] }}
+      ignore_errors: yes
+
+# ###
+
+#     - name: Start workload(pku)
+#       shell: |
+#         export LD_BIND_NOW=1; \
+#         nohup /home/ubuntu/migration_test/pku_scripts/pku > /dev/null 2>&1 &
+
+#     - name: Get workload PID
+#       shell: pgrep -f pku
+#       register: PID
+
+#     - name: entire scanning
+#       shell: |
+#         sudo gdb -p {{ PID.stdout_lines[0] }} -x /home/ubuntu/migration_test/ins_disas/gdb_script_entire_scanning.py
+
+#     - name: renaming log
+#       shell: |
+#         mv /home/ubuntu/migration_test/ins_disas/log/isa_set.csv /home/ubuntu/migration_test/ins_disas/log/"$(curl http://169.254.169.254/latest/meta-data/instance-type).csv"
+
+#     - name: Upload to S3 - entire scanning result
+#       shell: |
+#         aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/entire-scanning/pku/
+
+#     - name: clean-up process
+#       shell: |
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.csv; \
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.txt; \
+#         kill -9 {{ PID.stdout_lines[0] }}
+#       ignore_errors: yes
+
+# ###
+
+#     - name: Start workload(rdseed)
+#       shell: |
+#         export LD_BIND_NOW=1; \
+#         nohup /home/ubuntu/migration_test/rdseed_scripts/rand > /dev/null 2>&1 &
+
+#     - name: Get workload PID
+#       shell: pgrep -f rand
+#       register: PID
+
+#     - name: entire scanning
+#       shell: |
+#         sudo gdb -p {{ PID.stdout_lines[0] }} -x /home/ubuntu/migration_test/ins_disas/gdb_script_entire_scanning.py
+
+#     - name: renaming log
+#       shell: |
+#         mv /home/ubuntu/migration_test/ins_disas/log/isa_set.csv /home/ubuntu/migration_test/ins_disas/log/"$(curl http://169.254.169.254/latest/meta-data/instance-type).csv"
+
+#     - name: Upload to S3 - entire scanning result
+#       shell: |
+#         aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/entire-scanning/rdseed/
+
+#     - name: clean-up process
+#       shell: |
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.csv; \
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.txt; \
+#         kill -9 {{ PID.stdout_lines[0] }}
+#       ignore_errors: yes
+
+# ###
+
+#     - name: Start workload(sha)
+#       shell: |
+#         export LD_BIND_NOW=1; \
+#         export LD_LIBRARY_PATH=/home/ubuntu/openssl-openssl-3.1.3:$LD_LIBRARY_PATH; \
+#         nohup /home/ubuntu/migration_test/sha_scripts/sha > /dev/null 2>&1 &
+
+#     - name: Get workload PID
+#       shell: pidof sha
+#       register: PID
+
+#     - name: entire scanning
+#       shell: |
+#         sudo gdb -p {{ PID.stdout_lines[0] }} -x /home/ubuntu/migration_test/ins_disas/gdb_script_entire_scanning.py
+
+#     - name: renaming log
+#       shell: |
+#         mv /home/ubuntu/migration_test/ins_disas/log/isa_set.csv /home/ubuntu/migration_test/ins_disas/log/"$(curl http://169.254.169.254/latest/meta-data/instance-type).csv"
+
+#     - name: Upload to S3 - entire scanning result
+#       shell: |
+#         aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/entire-scanning/sha/
+
+#     - name: clean-up process
+#       shell: |
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.csv; \
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.txt; \
+#         kill -9 {{ PID.stdout_lines[0] }}
+#       ignore_errors: yes
+
+# ###
+
+#     - name: Start workload(matmul)
+#       shell: |
+#         export LD_BIND_NOW=1; \
+#         nohup /home/ubuntu/migration_test/matrix_script/matrix_multiplication > /dev/null 2>&1 &
+
+#     - name: Get workload PID
+#       shell: pgrep -f matrix_multiplication
+#       register: PID
+
+#     - name: entire scanning
+#       shell: |
+#         sudo gdb -p {{ PID.stdout_lines[0] }} -x /home/ubuntu/migration_test/ins_disas/gdb_script_entire_scanning.py
+
+#     - name: renaming log
+#       shell: |
+#         mv /home/ubuntu/migration_test/ins_disas/log/isa_set.csv /home/ubuntu/migration_test/ins_disas/log/"$(curl http://169.254.169.254/latest/meta-data/instance-type).csv"
+
+#     - name: Upload to S3 - entire scanning result
+#       shell: |
+#         aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/entire-scanning/c_matrix_multiplication/
+
+#     - name: clean-up process
+#       shell: |
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.csv; \
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.txt; \
+#         kill -9 {{ PID.stdout_lines[0] }}
+#       ignore_errors: yes
+
+# ###
+
+#     - name: Start workload(redis)
+#       shell: |
+#         export LD_BIND_NOW=1; \
+#         nohup /usr/bin/redis-server --port 7777 > /dev/null 2>&1 &
+
+#     - name: Get workload PID
+#       shell: pgrep -u ubuntu redis-server
+#       register: PID
+
+#     - name: entire scanning
+#       shell: |
+#         sudo gdb -p {{ PID.stdout_lines[0] }} -x /home/ubuntu/migration_test/ins_disas/gdb_script_entire_scanning.py
+
+#     - name: renaming log
+#       shell: |
+#         mv /home/ubuntu/migration_test/ins_disas/log/isa_set.csv /home/ubuntu/migration_test/ins_disas/log/"$(curl http://169.254.169.254/latest/meta-data/instance-type).csv"
+
+#     - name: Upload to S3 - entire scanning result
+#       shell: |
+#         aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/entire-scanning/redis/
+
+#     - name: clean-up process
+#       shell: |
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.csv; \
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.txt; \
+#         kill -9 {{ PID.stdout_lines[0] }}
+#       ignore_errors: yes
+
+# ###
+
+#     - name: Start workload(cpp_xgboost)
+#       shell: |
+#         export LD_BIND_NOW=1; \
+#         nohup /home/ubuntu/migration_test/xgboost_scripts/mnist > /dev/null 2>&1 &
+
+#     - name: Get workload PID
+#       shell: pgrep -f mnist
+#       register: PID
+
+#     - name: entire scanning
+#       shell: |
+#         sudo gdb -p {{ PID.stdout_lines[0] }} -x /home/ubuntu/migration_test/ins_disas/gdb_script_entire_scanning.py
+
+#     - name: renaming log
+#       shell: |
+#         mv /home/ubuntu/migration_test/ins_disas/log/isa_set.csv /home/ubuntu/migration_test/ins_disas/log/"$(curl http://169.254.169.254/latest/meta-data/instance-type).csv"
+
+#     - name: Upload to S3 - entire scanning result
+#       shell: |
+#         aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/entire-scanning/cpp_xgboost/
+
+#     - name: clean-up process
+#       shell: |
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.csv; \
+#         sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.txt; \
+#         kill -9 {{ PID.stdout_lines[0] }}
+#       ignore_errors: yes

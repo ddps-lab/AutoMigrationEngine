@@ -80,7 +80,9 @@ def internalMigration(group_number):
     print(f"group{group_number} total execution time: {total_time}")
 
 def funcTracking(groups):
-    if not os.path.exists('ssh_scripts/{WORKLOAD}/func_tracking.yml'):
+    print('run')
+    if not os.path.exists(f'ssh_scripts/{WORKLOAD}/func_tracking.yml'):
+        print('run?')
         return
     
     sources = []
@@ -107,6 +109,37 @@ def funcTracking(groups):
     with open(f'ansible.log', 'w') as f:
         subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/func_tracking.yml",
                        "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
+        
+
+def entire_scanning(groups):
+    if not os.path.exists('ssh_scripts/entire_scanning/entire_scanning.yml'):
+        return
+    
+    sources = []
+
+    for i in range(len(groups)):
+        with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
+            source = f.readlines()
+        sources += [src.strip() for src in source]
+
+    inventory = {
+        "all": {
+            "vars": {
+                "ansible_user": "ubuntu",
+                "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
+            },
+            "hosts": {src: None for src in sources}
+        },
+    }
+
+    # Update dynamic inventory file
+    with open("ssh_scripts/inventory.json", "w") as f:
+        json.dump(inventory, f)
+
+    with open(f'ansible.log', 'w') as f:
+        subprocess.run(["ansible-playbook", f"ssh_scripts/entire_scanning/entire_scanning.yml",
+                       "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
+
 
 def externalMigrationDump(groups, re_exp=False):
     sources = []
