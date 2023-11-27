@@ -3,14 +3,17 @@
   hosts: all
   gather_facts: no
   tasks:
+    - name: init
+      shell: |
+        sudo rm -rf /home/ubuntu/migration_test/ins_disas/log/*.csv
+      ignore_errors: yes
+
     - name: Start workload
       shell: |
-        export LD_BIND_NOW=1; \
-        export LD_LIBRARY_PATH=/home/ubuntu/openssl-openssl-3.1.3:$LD_LIBRARY_PATH; \
-        nohup /home/ubuntu/migration_test/adx_scripts/rsa > /dev/null 2>&1 &
+        nohup /home/ubuntu/migration_test/pku_scripts/pku > /dev/null 2>&1 &
 
     - name: Get workload PID
-      shell: pgrep -f rsa
+      shell: pgrep -f pku
       register: PID
 
     - name: func tracking
@@ -23,5 +26,5 @@
 
     - name: Upload to S3 - func tracking result
       shell: |
-        aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/func_tracking/adox_adcx/
+        aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/func-tracking-lazybinding/pku/
         

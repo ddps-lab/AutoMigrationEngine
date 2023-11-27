@@ -79,10 +79,13 @@ def internalMigration(group_number):
     total_time = end_time - start_time
     print(f"group{group_number} total execution time: {total_time}")
 
-def funcTracking(groups):
-    print('run')
-    if not os.path.exists(f'ssh_scripts/{WORKLOAD}/func_tracking.yml'):
-        print('run?')
+def funcTracking(groups, is_lazy_binding=False):
+    if is_lazy_binding:
+        playbook = 'func-tracking-lazybinding'
+    else:
+        playbook = 'func_tracking'
+
+    if not os.path.exists(f'ssh_scripts/{WORKLOAD}/{playbook}.yml'):
         return
     
     sources = []
@@ -107,7 +110,7 @@ def funcTracking(groups):
         json.dump(inventory, f)
 
     with open(f'ansible.log', 'w') as f:
-        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/func_tracking.yml",
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/{playbook}.yml",
                        "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
         
 
