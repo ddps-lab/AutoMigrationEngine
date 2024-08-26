@@ -70,7 +70,7 @@
 
     - name: logging - write the workload state
       shell: |
-        python3 /home/ubuntu/LiveMigrate-Detector/experiment_utils/logging_workload_state.py rand
+        python3 /home/ubuntu/LiveMigrate-Detector/experiment_utils/logging_workload_state.py "rand.py"
 
     - name: Log to CSV
       shell: |
