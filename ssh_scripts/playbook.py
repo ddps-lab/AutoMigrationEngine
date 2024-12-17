@@ -12,11 +12,11 @@ def setWorkload():
     global USER
 
     workloads = ['matrix_multiplication', 'redis', 'ubuntu_container', 'xgboost', 'rubin', 'c_matrix_multiplication', 'cpp_xgboost', 'adox_adcx',
-                 'pku', 'rdseed', 'sha', 'criu_cpu_check', 'py_rdseed', 'py_pku', 'py_rsa', 'py_sha']
+                 'pku', 'rdseed', 'sha', 'criu_cpu_check', 'py_rdseed', 'py_pku', 'py_rsa', 'py_sha', 'py_matmul', 'py_xgboost']
     print('Select workloads to experiment with')
     print(f'1. {workloads[0]}\n2. {workloads[1]}\n3. {workloads[2]}\n4. {workloads[3]}\n5. {workloads[4]}\n6. {workloads[5]}\n7. {workloads[6]}')
     print(f'8. {workloads[7]}\n9. {workloads[8]}\n10. {workloads[9]}\n11. {workloads[10]}\n12. {workloads[11]}\n13. {workloads[12]}\n14. {workloads[13]}')
-    print(f'15. {workloads[14]}\n16. {workloads[15]}')
+    print(f'15. {workloads[14]}\n16. {workloads[15]}\n17. {workloads[16]}\n18. {workloads[17]}')
     
     index = int(input()) - 1
 

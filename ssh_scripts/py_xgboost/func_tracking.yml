@@ -1,0 +1,33 @@
+---
+- name: function tracking
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Start workload
+      shell: |
+        export LD_BIND_NOW=1; \
+        export LD_LIBRARY_PATH=/home/ubuntu/openssl-openssl-3.1.3:$LD_LIBRARY_PATH; \
+        nohup bash -c 'cd /home/ubuntu/LiveMigrate-Detector/workload_instruction_analyzer/bytecode_tracking/exp_workloads/xgboost/ && python3 xgb_example.py > /dev/null 2>&1 &'
+
+    - name: Get workload PID
+      shell: ps aux | grep "python3 xgb_example.py" | grep -v "bash -c" | grep -v grep | awk '{print $2}'
+      register: PID
+
+    - name: func tracking
+      shell: |
+        sudo /home/ubuntu/LiveMigrate-Detector/workload_instruction_analyzer/execution_path_tracking.sh {{ PID.stdout_lines[0] }} c
+
+    - name: renaming log
+      shell: |
+        mv /home/ubuntu/LiveMigrate-Detector/workload_instruction_analyzer/log/isa_set.csv /home/ubuntu/LiveMigrate-Detector/workload_instruction_analyzer/log/"$(curl http://169.254.169.254/latest/meta-data/instance-type).csv"
+
+    - name: Upload to S3 - func tracking result
+      shell: |
+        aws s3 cp /home/ubuntu/LiveMigrate-Detector/workload_instruction_analyzer/log/*.csv s3://migration-compatibility/func_tracking/pyxgboost/
+
+    - name: Cleanup
+      shell: |
+        sudo rm -rf /home/ubuntu/LiveMigrate-Detector/workload_instruction_analyzer/log/*.csv; \
+        sudo kill -9 {{ PID.stdout_lines[0] }}
+      ignore_errors: yes
+        
