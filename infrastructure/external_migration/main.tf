@@ -6,7 +6,6 @@ provider "aws" {
 module "read-instances" {
   source    = "../modules/read-instances"
   file_path = "../CPU Feature Visualization - minimized aws group(all).csv"
-  # file_path = "../Group all features with the same instances for rhel.csv"
 }
 
 module "vpc" {
