@@ -1,12 +1,34 @@
-# 마이그레이션 실험 자동화
+## Migration Experiment Automation
+* Process Migration Experiment Automation
+* Automatic Detection of Process Correctness and Debugging for Abnormal Termination After Migration
 
-프로세스 및 컨테이너 마이그레이션에서 발생하는 주요 이슈인 CPU 호환성을 실험함.
+### 1. Experiment Set Configuration
 
-### Dir 구조
+1.	/data_processing_for_lscpu/entire/CreateAllCpuFeature.py
+    * Removes CPU features that are either universally present or absent across all instances.
+2.	/data_processing_for_lscpu/entire/GroupByAWS.py
+    * Groups instances with identical CPU features.
+3.	/data_processing_for_lscpu/entire/SimplizedAwsGroup(all).py
+    * Excludes instances that are excessively large or small.
+4.	/data_processing_for_lscpu/entire/MinimizedAwsGroup(all).py
+    * Selects the most cost-effective instances within each group.
 
-```data_processing_for_lscpu```: CPU feature set을 google spreadsheet에 write, grouping 등의 작업을 수행하며 실험 비용을 절감하기 위해 각 CPU feature 그룹을 minimize할 수 있음.  
-```infrastructure```: 실험 인프라 생성 관련 terraform code.  
-```ssh_scripts```: 실험이 이루어지는 인스턴스 제어 관련 ansible scripts.  
-```ExternalMigration(all of cases).py```: 실험을 수행하는 메인 스크립트. 해당 스크립트만 실행하면 모든 실험이 자동으로 이루어짐.  
-```ExternalMigration(re-experiment)```: 실험 중간에 누락이 발생하는 경우 자동으로 이를 탐지하여 재실험. S3에 로드되지 않은 실험 케이스를 파악하여 재실험함.  
-```InternalMigration```: 그룹 내 마이그레이션 실험
+### 2. Install LiveMigrate-Detector
+
+Clone LiveMigrate-Detector into the experiment environment.
+
+git clone https://github.com/ddps-lab/LiveMigrate-Detector.git
+
+### 3. Infrastructure Configuration
+
+1.	Update /infrastructure/*/variables.tf
+    * Set region, key, AMI ID, and other parameters.
+
+### 4. Experiment Execution
+
+1.	/ExternalMigration(all of cases).py
+    * Performs migration experiments across instance groups.
+2.	/ExternalMigration(re-experiment).py
+    * Automatically detects and re-executes missing experiment cases, such as failed instance creation.
+3.	/InternalMigration.py
+    * Conducts migration experiments between instances within the same group with identical CPU features.
