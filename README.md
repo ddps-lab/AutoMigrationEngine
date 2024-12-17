@@ -1,14 +1,34 @@
-# 마이그레이션 전구간 자동화 및 테스트
+## Migration Experiment Automation
+* Process Migration Experiment Automation
+* Automatic Detection of Process Correctness and Debugging for Abnormal Termination After Migration
 
-해당 실험에서는 [CPU Feature Visualization](https://docs.google.com/spreadsheets/d/17V0eoAl-4STj_KoQ5SOf2wRohbt6LxovyQ2HDvIxt-c/edit#gid=0) 데이터셋을 사용함
-/data-processing-for-lscpu 에서 데이터셋을 생성. 
+### 1. Experiment Set Configuration
 
-### 테스트 시나리오
+1.	/data_processing_for_lscpu/entire/CreateAllCpuFeature.py
+    * Removes CPU features that are either universally present or absent across all instances.
+2.	/data_processing_for_lscpu/entire/GroupByAWS.py
+    * Groups instances with identical CPU features.
+3.	/data_processing_for_lscpu/entire/SimplizedAwsGroup(all).py
+    * Excludes instances that are excessively large or small.
+4.	/data_processing_for_lscpu/entire/MinimizedAwsGroup(all).py
+    * Selects the most cost-effective instances within each group.
 
-1. 그룹 내 마이그레이션
-2. 그룹 to 그룹 마이그레이션
+### 2. Install LiveMigrate-Detector
 
-### 결과
+Clone LiveMigrate-Detector into the experiment environment.
 
-1. 시나리오 1 - [CPU Feature Visualization - simplized aws group(core)](https://docs.google.com/spreadsheets/d/17V0eoAl-4STj_KoQ5SOf2wRohbt6LxovyQ2HDvIxt-c/edit#gid=2032166168) 데이터셋 10개그룹 34개 인스턴스에 대해 총 98회 마이그레이션 모두 성공
-2. 시나리오 2 - 진행중..
+git clone https://github.com/ddps-lab/LiveMigrate-Detector.git
+
+### 3. Infrastructure Configuration
+
+1.	Update /infrastructure/*/variables.tf
+    * Set region, key, AMI ID, and other parameters.
+
+### 4. Experiment Execution
+
+1.	/ExternalMigration(all of cases).py
+    * Performs migration experiments across instance groups.
+2.	/ExternalMigration(re-experiment).py
+    * Automatically detects and re-executes missing experiment cases, such as failed instance creation.
+3.	/InternalMigration.py
+    * Conducts migration experiments between instances within the same group with identical CPU features.

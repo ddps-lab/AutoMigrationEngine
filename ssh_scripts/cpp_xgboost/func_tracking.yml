@@ -1,0 +1,26 @@
+---
+- name: Migration compatibility check - src
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Start workload
+      shell: |
+        export LD_BIND_NOW=1; \
+        nohup /home/ubuntu/migration_test/xgboost_scripts/mnist > /dev/null 2>&1 &
+
+    - name: Get workload PID
+      shell: pgrep -f mnist
+      register: PID
+
+    - name: func tracking
+      shell: |
+        sudo /home/ubuntu/migration_test/ins_disas/measure_overhead_func_tracking.sh {{ PID.stdout_lines[0] }}
+
+    - name: renaming log
+      shell: |
+        mv /home/ubuntu/migration_test/ins_disas/log/isa_set.csv /home/ubuntu/migration_test/ins_disas/log/"$(curl http://169.254.169.254/latest/meta-data/instance-type).csv"
+
+    - name: Upload to S3 - func tracking result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/ins_disas/log/*.csv s3://migration-compatibility/func_tracking/cpp_xgboost/
+        

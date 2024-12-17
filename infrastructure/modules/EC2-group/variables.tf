@@ -14,7 +14,7 @@ variable "availability_zone" {
   type = string
 }
 
-variable "shuffled_instance_group" {
+variable "instance_group" {
   type = list
 }
 
@@ -27,5 +27,9 @@ variable "security_group_id" {
 }
 
 variable "efs_dns_name" {
+  type = string
+}
+
+variable "user" {
   type = string
 }

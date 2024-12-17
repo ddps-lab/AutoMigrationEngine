@@ -1,0 +1,48 @@
+---
+- name: Migration compatibility check - src
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: set index variable
+      set_fact:
+        index: "{{ groups['all'].index(inventory_hostname) }}"  
+
+    - name: Initialize source instance
+      shell: |
+        mkdir /home/ubuntu/migration_test/dump/{{ index }}
+      ignore_errors: yes
+
+    - name: Increase PID
+      shell: |
+        python3 /home/ubuntu/migration_test/increase_pid.py > /dev/null
+
+    - name: Start workload
+      shell: |
+        export LD_BIND_NOW=1; \
+        export LD_LIBRARY_PATH=/home/ubuntu/openssl-openssl-3.1.3:$LD_LIBRARY_PATH; \
+        nohup /home/ubuntu/migration_test/sha_scripts/sha > /dev/null 2>&1 &
+
+    - name: logging - write the src instance type
+      shell: |
+        echo "src : $(curl http://169.254.169.254/latest/meta-data/instance-type)" > /home/ubuntu/migration_test/dump/{{ index }}/performance.log
+
+    - name: Get workload PID
+      shell: pidof sha
+      register: PID
+
+    - name: logging - write the checkpoint start time
+      shell: |
+        echo start checkpoint : $(date +'%Y-%m-%dT%H:%M:%S') > /home/ubuntu/migration_test/dump/{{ index }}/timestamp.log
+
+    - name: Checkpoint workload
+      shell: |
+        sudo criu dump -j -v4 --display-stats -D /home/ubuntu/migration_test/dump/{{ index }}/ -t {{ PID.stdout_lines[0] }} >> /home/ubuntu/migration_test/dump/{{ index }}/performance.log \
+        2> /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/dump/{{ index }}/performance.log)-dump.log"
+
+    - name: logging - write the checkpoint end time
+      shell: |
+        echo end checkpoint : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/dump/{{ index }}/timestamp.log
+
+    - name: Upload to S3 - dump detail log
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*-dump.log s3://migration-compatibility-detail

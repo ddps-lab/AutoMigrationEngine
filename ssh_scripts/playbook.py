@@ -1,9 +1,33 @@
 import subprocess
 import time
 import json
+import os
+
+WORKLOAD = ''
+USER = ''
 
 
-def scenario1(group_number):
+def setWorkload():
+    global WORKLOAD
+    global USER
+
+    workloads = ['matrix_multiplication', 'redis', 'ubuntu_container', 'xgboost', 'rubin', 'c_matrix_multiplication', 'cpp_xgboost', 'adox_adcx',
+                 'pku', 'rdseed', 'sha', 'criu_cpu_check', 'py_rdseed', 'py_pku', 'py_rsa', 'py_sha', 'py_matmul', 'py_xgboost']
+    print('Select workloads to experiment with')
+    print(f'1. {workloads[0]}\n2. {workloads[1]}\n3. {workloads[2]}\n4. {workloads[3]}\n5. {workloads[4]}\n6. {workloads[5]}\n7. {workloads[6]}')
+    print(f'8. {workloads[7]}\n9. {workloads[8]}\n10. {workloads[9]}\n11. {workloads[10]}\n12. {workloads[11]}\n13. {workloads[12]}\n14. {workloads[13]}')
+    print(f'15. {workloads[14]}\n16. {workloads[15]}\n17. {workloads[16]}\n18. {workloads[17]}')
+    
+    index = int(input()) - 1
+
+    WORKLOAD = workloads[index]
+
+    if index == 2:
+        USER = 'ec2-user'
+    else:
+        USER = 'ubuntu'
+
+def internalMigration(group_number):
     with open("ssh_scripts/inventory_" + group_number + ".txt") as f:
         hosts = f.readlines()
     hosts = [host.strip() for host in hosts]
@@ -11,7 +35,7 @@ def scenario1(group_number):
     inventory = {
         "all": {
             "vars": {
-                "ansible_user": "ec2-user",
+                "ansible_user": f"{USER}",
                 "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
             },
             "hosts": {},
@@ -47,65 +71,198 @@ def scenario1(group_number):
             json.dump(inventory, f)
 
         with open(f'group{group_number}.log', 'a') as f:
-            subprocess.run(["ansible-playbook", "ssh_scripts/playbook.yml", "-i",
+            subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/internal-migration.yml", "-i",
                            "ssh_scripts/inventory_" + group_number + ".json"], stdout=f, stderr=f)
 
         time.sleep(5)
 
     end_time = time.time()
     total_time = end_time - start_time
-    print("total execution time: {:.2f}".format(total_time))
+    print(f"group{group_number} total execution time: {total_time}")
 
+def funcTracking(groups, is_lazy_binding=False):
+    if is_lazy_binding:
+        playbook = 'func-tracking-lazybinding'
+    else:
+        playbook = 'func_tracking'
 
-def scenario2(src, dst):
-    with open("ssh_scripts/inventory_" + str(src) + ".txt") as f:
-        sources = f.readlines()
-    sources = [src.strip() for src in sources]
+    if not os.path.exists(f'ssh_scripts/{WORKLOAD}/{playbook}.yml'):
+        return
+    
+    sources = []
 
-    destinations = []
-    for i in range(len(dst)):
-        with open("ssh_scripts/inventory_" + str(dst[i]) + ".txt") as f:
-            dst_group = f.readlines()
-        destinations += [dst.strip() for dst in dst_group]
+    for i in range(len(groups)):
+        with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
+            source = f.readlines()
+        sources += [src.strip() for src in source]
 
     inventory = {
         "all": {
             "vars": {
-                "ansible_user": "ec2-user",
+                "ansible_user": f"{USER}",
                 "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
             },
-            "hosts": {},
+            "hosts": {src: None for src in sources}
         },
-
-        "src": {
-            "hosts": {
-                sources[0]: None
-            }
-        },
-        "dst": {
-            "hosts": {
-                dst: None for dst in destinations
-            }
-        }
     }
 
-    start_time = time.time()
-    for i in range(len(sources)):
-        # Run playbook with current inventory
+    # Update dynamic inventory file
+    with open("ssh_scripts/inventory.json", "w") as f:
+        json.dump(inventory, f)
 
-        # Swap src
-        inventory["src"]["hosts"] = sources[i]
+    with open(f'ansible.log', 'w') as f:
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/{playbook}.yml",
+                       "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
 
-        # Update dynamic inventory file
-        with open("ssh_scripts/inventory.json", "w") as f:
-            json.dump(inventory, f)
+def bytecodeTracking(groups):
+    if not os.path.exists(f'ssh_scripts/{WORKLOAD}/bytecode_tracking.yml'):
+        return
+    
+    sources = []
 
-        with open(f'ansible.log', 'a') as f:
-            subprocess.run(["ansible-playbook", "ssh_scripts/playbook.yml",
-                           "-i", "ssh_scripts/inventory.json"], stdout=f, stderr=f)
+    for i in range(len(groups)):
+        with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
+            source = f.readlines()
+        sources += [src.strip() for src in source]
 
-        time.sleep(5)
+    inventory = {
+        "all": {
+            "vars": {
+                "ansible_user": f"{USER}",
+                "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
+            },
+            "hosts": {src: None for src in sources}
+        },
+    }
 
-    end_time = time.time()
-    total_time = end_time - start_time
-    print("total execution time: {:.2f}".format(total_time))
+    # Update dynamic inventory file
+    with open("ssh_scripts/inventory.json", "w") as f:
+        json.dump(inventory, f)
+
+    with open(f'ansible.log', 'w') as f:
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/bytecode_tracking.yml",
+                       "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
+
+
+def entire_scanning(groups):
+    if not os.path.exists(f'ssh_scripts/{WORKLOAD}/entire_scanning.yml'):
+        return
+    
+    sources = []
+
+    for i in range(len(groups)):
+        with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
+            source = f.readlines()
+        sources += [src.strip() for src in source]
+
+    inventory = {
+        "all": {
+            "vars": {
+                "ansible_user": "ubuntu",
+                "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
+            },
+            "hosts": {src: None for src in sources}
+        },
+    }
+
+    # Update dynamic inventory file
+    with open("ssh_scripts/inventory.json", "w") as f:
+        json.dump(inventory, f)
+
+    with open(f'ansible.log', 'w') as f:
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/entire_scanning.yml",
+                       "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
+
+
+def externalMigrationDump(groups, re_exp=False):
+    sources = []
+    if re_exp:
+        with open("ssh_scripts/inventory_0.txt") as f:
+            source = f.readlines()
+        sources += [src.strip() for src in source]
+    else:
+        for i in range(len(groups)):
+            with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
+                source = f.readlines()
+            sources += [src.strip() for src in source]
+
+    inventory = {
+        "all": {
+            "vars": {
+                "ansible_user": f"{USER}",
+                "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
+            },
+            "hosts": {src: None for src in sources}
+        },
+    }
+
+    # Update dynamic inventory file
+    with open("ssh_scripts/inventory.json", "w") as f:
+        json.dump(inventory, f)
+
+    with open(f'ansible.log', 'w') as f:
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/external-migration-dump.yml",
+                       "-i", "ssh_scripts/inventory.json", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
+
+
+def externalMigrationRestore(groups, src, re_exp=False):
+    destinations = []
+    for i in range(len(groups)):
+        # 본인을 제외한 모든 그룹의 프로세스를 복원
+        if groups[i] == src:
+            continue
+
+        with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
+            destination = f.readlines()
+        destinations += [dst.strip() for dst in destination]
+
+    inventory = {
+        "all": {
+            "vars": {
+                "ansible_user": f"{USER}",
+                "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
+            },
+            "hosts": {dst: None for dst in destinations}
+        },
+    }
+
+    # Update dynamic inventory file
+    with open("ssh_scripts/inventory.json", "w") as f:
+        json.dump(inventory, f)
+
+    with open(f'ansible.log', 'a') as f:
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/external-migration-restore.yml",
+                        "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)
+
+
+def externalMigrationDebug(groups, src, re_exp=False):
+    destinations = []
+    for i in range(len(groups)):
+        # 본인을 제외한 모든 그룹의 프로세스를 복원
+        if groups[i] == src:
+            continue
+
+        with open("ssh_scripts/inventory_" + str(groups[i]) + ".txt") as f:
+            destination = f.readlines()
+        destinations += [dst.strip() for dst in destination]
+
+    inventory = {
+        "all": {
+            "vars": {
+                "ansible_user": f"{USER}",
+                "ansible_ssh_common_args": "-o 'StrictHostKeyChecking=no'",
+            },
+            "hosts": {dst: None for dst in destinations}
+        },
+    }
+
+    if (re_exp):
+        src = 0
+
+    # Update dynamic inventory file
+    with open("ssh_scripts/inventory.json", "w") as f:
+        json.dump(inventory, f)
+
+    with open(f'ansible.log', 'a') as f:
+        subprocess.run(["ansible-playbook", f"ssh_scripts/{WORKLOAD}/external-migration-debug.yml",
+                        "-i", "ssh_scripts/inventory.json", "-e", f"src={src}", "--forks", f"{len(groups)}"], stdout=f, stderr=f)

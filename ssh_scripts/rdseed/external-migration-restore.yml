@@ -1,0 +1,100 @@
+---
+- name : Migration compatibility check - dst
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Initialize destination instance
+      shell: |
+        sudo dmesg -C; \
+        sudo rm -rf /home/ubuntu/migration_test/*.csv; \
+        sudo rm -rf /home/ubuntu/migration_test/*.log; \
+        sudo kill -9 $(pgrep -f rand)
+      ignore_errors: yes
+
+    - name: Copy the log from the dump directory
+      shell: |
+        cp /home/ubuntu/migration_test/dump/{{ src }}/*.log /home/ubuntu/migration_test
+
+    - name: logging - write the dst instance type
+      shell: |
+        INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type) && \
+        sed -i "2i dst : $INSTANCE_TYPE" /home/ubuntu/migration_test/performance.log
+
+    - name: Get workload PID
+      register: PID
+      shell: |
+        export PATH=$PATH:/home/ubuntu/criu-3.18/crit/; \
+        export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python; \
+        crit show /home/ubuntu/migration_test/dump/{{ src }}/pstree.img | jq '.entries[0].pid'
+
+    - name: logging - write the restore start time
+      shell: |
+        echo start restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
+
+    - name: Restore workload
+      shell: |
+        nohup sudo criu restore -j -s -v4 --display-stats -D /home/ubuntu/migration_test/dump/{{ src }} >> /home/ubuntu/migration_test/performance.log \
+        2>> /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log)-restore.log" &
+
+    - name: Wait for *-restore.log to be created
+      ansible.builtin.find:
+        paths: "/home/ubuntu/migration_test"
+        patterns: '*-restore.log'
+      register: found_files
+      until: found_files.matched > 0
+      retries: 3
+      delay: 10
+
+    - name: Check for success message in restore.log
+      shell: grep -E "Restore finished successfully. Tasks resumed.|Restoring FAILED." /home/ubuntu/migration_test/*-restore.log
+      register: grep_result
+      ignore_errors: yes
+      until: grep_result.rc == 0
+      retries: 18
+      delay: 10
+
+    - name: Restoring failed
+      fail:
+        msg: "Restoring FAILED."
+      when:
+        - grep_result.rc != 0
+        - "'Restoring FAILED.' in grep_result.stdout"
+
+    - name: logging - write the restore end time
+      shell: |
+        echo end restore : $(date +'%Y-%m-%dT%H:%M:%S') >> /home/ubuntu/migration_test/timestamp.log
+
+    - name: process resume
+      shell: |
+        kill -CONT {{ PID.stdout_lines[0] }}
+
+    - name: logging - write the workload state
+      shell: |
+        python3 /home/ubuntu/migration_test/logging_workload_state.py rand
+
+    - name: Log to CSV
+      shell: |
+        python3 /home/ubuntu/migration_test/log_to_csv.py 
+        mv /home/ubuntu/migration_test/migration_data.csv /home/ubuntu/migration_test/"$(sed -n '/src :/s/^src : //p' /home/ubuntu/migration_test/performance.log)_to_$(sed -n '/dst :/s/^dst : //p' /home/ubuntu/migration_test/performance.log).csv"
+
+    - name: Debugging for Migration Failures
+      shell: |
+        python3 /home/ubuntu/migration_test/debug_scripts/debug.py {{ PID.stdout_lines[0] }} {{ src }}
+
+    - name: Upload to S3 - migration result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/ s3://migration-compatibility/Migration-between-groups/rdseed/ --recursive --exclude "*" --include "*_to_*.csv" --exclude "*-debug.csv" --exclude "mnist*.csv" 
+
+    - name: Upload to S3 - restore detail log
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*-restore.log s3://migration-compatibility-detail
+
+    - name: Upload to S3 - debug result
+      shell: |
+        aws s3 cp /home/ubuntu/migration_test/*-debug.csv s3://migration-compatibility/Migration-failure-groups/rdseed/
+      ignore_errors: yes
+
+    # re-exp    
+    # - name: shutdown
+    #   shell: |
+    #     sudo shutdown now

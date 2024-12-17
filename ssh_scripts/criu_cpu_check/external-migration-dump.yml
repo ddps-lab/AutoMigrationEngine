@@ -1,0 +1,21 @@
+---
+- name: Migration compatibility check - src
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: set index variable
+      set_fact:
+        index: "{{ groups['all'].index(inventory_hostname) }}"  
+
+    - name: Initialize source instance
+      shell: |
+        mkdir /home/ubuntu/migration_test/dump/{{ index }}
+      ignore_errors: yes
+
+    - name: cpuinfo dump
+      shell: |
+        sudo criu cpuinfo dump -D /home/ubuntu/migration_test/dump/{{ index }}
+
+    - name: logging - write the src instance type
+      shell: |
+        echo "src : $(curl http://169.254.169.254/latest/meta-data/instance-type)" > /home/ubuntu/migration_test/dump/{{ index }}/cpuinfo.log
